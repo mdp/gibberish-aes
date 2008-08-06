@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" lang="en"><head>
+<script type="text/javascript" src="jquery-1.2.6.js"></script>
+<script type="text/javascript" src="../src/gibberish-aes.js"></script>
+<script type="text/javascript" src="gibberish-aes-test.js"></script>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<style>
+body {
+    width:600px;
+    margin:auto;
+    background:#444;
+    color:#222;
+}
+#container {
+    background:#999;
+    margin:1em 0 1em 0;
+    padding: 0 .5em 0 .5em;
+    border:4px solid #FF9933;
+}
+h1{
+    color:#111;
+}
+h2{
+    color:#222;
+    margin-left:.5em;
+}
+.pagetitle {
+  color:#fff;
+  border-bottom:1px solid #333;
+}
+</style>
+</head>
+<body>
+ <div id="container">
+  <h1 class="pagetitle">Gibberish AES Test Page</h1>
+  <h1>FIPS Test Vectors</h1>
+  <ul>
+  <li id="f128">128 Bit:</li>
+  <li id="f192">192 Bit:</li>
+  <li id="f256">256 Bit:</li>
+  </ul>
+  <h1>OpenSSL Compatibility</h1>
+  <h2>Encryption</h2>
+  <ul>
+  <li id="oe128">128 Bit:</li>
+  <li id="oe192">192 Bit:</li>
+  <li id="oe256">256 Bit:</li>
+  </ul>
+  
+  <h2>Decryption</h2>
+  <ul>
+  <li id="od128">128 Bit: </li>
+  <li id="od192">192 Bit: </li>
+  <li id="od256">256 Bit: </li>
+  </ul>
+  
+  <h2>PBE Key IV Test</h2>
+  <ul>
+  <li id="pbe128">128 Bit:</li>
+  <li id="pbe192">192 Bit:</li>
+  <li id="pbe256">256 Bit:</li>
+  </ul>
+  <h1>UTF-8</h1>
+  <ul>
+  <li id="u128">128 Bit:</li>
+  <li id="u192">192 Bit:</li>
+  <li id="u256">256 Bit:</li>
+  </ul>
+  <h1>Speed</h1>
+  <a href="#" onclick='benchmark();'>Start Benchmark</a>
+  <ul id="benchmarks">
+  <li id="enc">100 Encrypts: </li>
+  <li id="dec">100 Decrypts: </li>
+  <li id="bigenc">5 Big Encodes(4k): </li>
+  <li id="bigdec">5 Big Decodes(4k): </li>
+  </ul>
+ </div>
+</body>
+</html>
