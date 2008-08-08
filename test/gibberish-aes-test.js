@@ -41,7 +41,7 @@ $(document).ready(function(){
 	var iv = GibberishAES.h2a("6bbda7892ad344e06c31e64564a69a9a");
 	var plaintext = GibberishAES.s2a("secretsecretsecret");
 	var openssl = "4j+jnKTSsTBVUJ9MuV8hFEHuxdyT065rYbUqo0gJo1I=\n"
-	enc = GibberishAES.encrypt(plaintext, key, iv);
+	enc = GibberishAES.rawEncrypt(plaintext, key, iv);
 	if (GibberishAES.Base64.encode(enc) == openssl) {
 		$('#oe128').append(" Passed!");
 	} else { $('#oe128').append(" Fail!"); }
@@ -53,7 +53,7 @@ $(document).ready(function(){
 	var iv = GibberishAES.h2a("6bbda7892ad344e06c31e64564a69a9a");
 	var plaintext = GibberishAES.s2a("secretsecretsecret");
 	var openssl = "g1D8nfnp31TH8jaV3304KP23i6aQhSaU3gubyGtV6WE=\n";
-	enc = GibberishAES.encrypt(plaintext, password, iv);
+	enc = GibberishAES.rawEncrypt(plaintext, password, iv);
 	if (GibberishAES.Base64.encode(enc) == openssl) {
 		$('#oe192').append(" Passed!");
 	} else { $('#oe192').append(" Fail!"); }
@@ -65,7 +65,7 @@ $(document).ready(function(){
 	var iv = GibberishAES.h2a("6bbda7892ad344e06c31e64564a69a9a");
 	var plaintext = GibberishAES.s2a("secretsecretsecret");
 	var openssl = "XUfDIa3urWyzHC1bmfmSQJjaTEXPmKkQYvbCnYd6gFY=\n";
-	enc = GibberishAES.encrypt(plaintext, password, iv);
+	enc = GibberishAES.rawEncrypt(plaintext, password, iv);
 	if (GibberishAES.Base64.encode(enc) == openssl) {
 		$('#oe256').append(" Passed!");
 	} else { $('#oe256').append(" Fail!"); }
@@ -74,11 +74,11 @@ $(document).ready(function(){
 	// Decryption
 	
 	GibberishAES.size(128);
-	$('#od128').append(GibberishAES.decryptOpenSSL("U2FsdGVkX19SF/vHKUf1zS4SMlbROLLCRiyprMJuQ+1nzQJyatGmJhC9xJ6Od+vcZtgZyurEqeEkna1Kj4gqdw==", "pass"));
+	$('#od128').append(GibberishAES.dec("U2FsdGVkX19SF/vHKUf1zS4SMlbROLLCRiyprMJuQ+1nzQJyatGmJhC9xJ6Od+vcZtgZyurEqeEkna1Kj4gqdw==", "pass"));
 	GibberishAES.size(192);
-	$('#od192').append(GibberishAES.decryptOpenSSL("U2FsdGVkX18EDbSr5+mGnFZRUwSTISFzadp7wsC/kTgtco+fQ4hMMrJ1zpePN6sicBnAOaC+p/vCmgb3zBc7Ag==", "pass"));
+	$('#od192').append(GibberishAES.dec("U2FsdGVkX18EDbSr5+mGnFZRUwSTISFzadp7wsC/kTgtco+fQ4hMMrJ1zpePN6sicBnAOaC+p/vCmgb3zBc7Ag==", "pass"));
 	GibberishAES.size(256);
-	$('#od256').append(GibberishAES.decryptOpenSSL("U2FsdGVkX1+f4uMd56OoVkwmaLStldQEHRNSGa1gRVF0XUvNNIr4Vg1PWa+0HHpiTRmvKXFSY90SrJea4Cb+zA==", "pass"));
+	$('#od256').append(GibberishAES.dec("U2FsdGVkX1+f4uMd56OoVkwmaLStldQEHRNSGa1gRVF0XUvNNIr4Vg1PWa+0HHpiTRmvKXFSY90SrJea4Cb+zA==", "pass"));
 	
 	
 	// PBE Testing
@@ -119,29 +119,29 @@ $(document).ready(function(){
 		$('#pbe256').append(" Passed!");
 	} else { $('#pbe256').append(" Fail!"); }
 	
-	//GibberishAES.decrypt("dd52055f3e2348a864115fd06979e6c8", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "6bbda7892ad344e06c31e64564a69a9a")
+	//GibberishAES.rawDecrypt("dd52055f3e2348a864115fd06979e6c8", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "6bbda7892ad344e06c31e64564a69a9a")
 	// "f4XTQBzF6h+B0T+P9bfqUKHO1nhsZAmYbmP55VHMmxZqTsx9Nhi0SZVck+0onxmsgAXxaEqyUmztv3726w0Kb03LpfOGszmQOQvwwmkV5goeB1oTKWThz+cIGh4qZcdnc/+Cq0sQ7QFBpkwhaFyFf2z2zDos+2hGr2qs04Jlj8Wx5fQTPWwFnsxKV4+rmqswnWwY6dNjxFi5LQ+aecPw0eDFQzZZuOgsFbreXMYzMWFzyH07khQfA5V45FhgOyq7ulmikUnahjupzlpL4lTaHMx6CU3gZo6E6+Ip5CANFwC0qhPP0Ekhdni5VjYz0Qw7"
 	// "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" 
 	
 	//UTF-8 Verify
 	GibberishAES.size(128);
 	var chinese = " 版面变化复";
-	enc = GibberishAES.encryptOpenSSL(chinese, "secret");
-	dec = GibberishAES.decryptOpenSSL(enc, "secret");
+	enc = GibberishAES.enc(chinese, "secret");
+	dec = GibberishAES.dec(enc, "secret");
 	$('#u128').append(" Before: "+ chinese);
 	$('#u128').append(" After: " + dec);
 	
 	GibberishAES.size(192);
 	var chinese = " 版面变化复";
-	enc = GibberishAES.encryptOpenSSL(chinese, "secret");
-	dec = GibberishAES.decryptOpenSSL(enc, "secret");
+	enc = GibberishAES.enc(chinese, "secret");
+	dec = GibberishAES.dec(enc, "secret");
 	$('#u192').append(" Before: "+ chinese);
 	$('#u192').append(" After: " + dec);
 	
 	GibberishAES.size(256);	
 	var chinese = " 版面变化复";
-	enc = GibberishAES.encryptOpenSSL(chinese, "secret");
-	dec = GibberishAES.decryptOpenSSL(enc, "secret");
+	enc = GibberishAES.enc(chinese, "secret");
+	dec = GibberishAES.dec(enc, "secret");
 	$('#u256').append(" Before: "+ chinese);
 	$('#u256').append(" After: " + dec);	
 });
@@ -153,7 +153,7 @@ function benchmark() {
 	var text = "Something small to encode, lets hope it's quite quick";
 	start = new Date();
 	for (var i=0; i<100; i++){
-		GibberishAES.encryptOpenSSL(text, "secret");
+		GibberishAES.enc(text, "secret");
 	}
 	end = new Date();
 	$('#enc').append((end-start)/1000 + " seconds");
@@ -161,7 +161,7 @@ function benchmark() {
 	var crypt = "U2FsdGVkX1+qbsRBKWqv3Hs8F187/SvIivffz/8tosmb4JocDocxBSTxAIWn1KkzlBRcIdYnlOKhgyJboCHn5SvQw+CDc/RLy2UIKGV2LpI="
 	start = new Date();
 	for (var i=0; i<100; i++){
-		GibberishAES.decryptOpenSSL(crypt, "secret");
+		GibberishAES.dec(crypt, "secret");
 	}
 	end = new Date();
 	$('#dec').append((end-start)/1000 + " seconds");
@@ -170,14 +170,14 @@ function benchmark() {
 	start = new Date();
 	var bigcrypt = ''
 	for (var i=0; i<5; i++){
-		big_crypt = GibberishAES.encryptOpenSSL(bigtext, "secret");
+		big_crypt = GibberishAES.enc(bigtext, "secret");
 	}
 	end = new Date();
 	$('#bigenc').append((end-start)/1000 + " seconds");
 	
 	start = new Date();
 	for (var i=0; i<5; i++){
-		GibberishAES.decryptOpenSSL(big_crypt, "secret");
+		GibberishAES.dec(big_crypt, "secret");
 	}
 	end = new Date();
 	$('#bigdec').append((end-start)/1000 + " seconds");

@@ -98,6 +98,7 @@ var GibberishAES = {
     },
 
     s2a: function(string) {
+				string = this.enc_utf8(string);
         var array = [];
         for (var i = 0; i < string.length; i++)
         {
@@ -162,34 +163,7 @@ var GibberishAES = {
         };
     },
 
-    encryptOpenSSL: function(string, pass) {
-        // string, password in plaintext
-        var salt = this.randArr(8);
-        var pbe = this.openSSLKey(this.s2a(pass), salt);
-        var key = pbe.key;
-        var iv = pbe.iv;
-        string = this.s2a(this.enc_utf8(string));
-        var cipherBlocks = this.encrypt(string, key, iv);
-        var saltBlock = [[83, 97, 108, 116, 101, 100, 95, 95].concat(salt)];
-        // Spells out 'Salted__'
-        cipherBlocks = saltBlock.concat(cipherBlocks);
-        return this.Base64.encode(cipherBlocks);
-    },
-
-    decryptOpenSSL: function(string, pass) {
-        // string, password in plaintext
-        var cryptArr = this.Base64.decode(string);
-        var salt = cryptArr.slice(8, 16);
-        var pbe = this.openSSLKey(this.s2a(pass), salt);
-        var key = pbe.key;
-        var iv = pbe.iv;
-        var cryptArr = cryptArr.slice(16, cryptArr.length)
-        // Take off the Salted__ffeeddcc
-        string = this.decrypt(cryptArr, key, iv);
-        return string;
-    },
-
-    encrypt: function(plaintext, key, iv) {
+    rawEncrypt: function(plaintext, key, iv) {
         // plaintext, key and iv as byte arrays
         key = this.expandKey(key);
         var numBlocks = Math.ceil(plaintext.length / 16);
@@ -210,7 +184,7 @@ var GibberishAES = {
         return cipherBlocks;
     },
 
-    decrypt: function(cryptArr, key, iv) {
+    rawDecrypt: function(cryptArr, key, iv) {
         //  cryptArr, key and iv as byte arrays
         key = this.expandKey(key);
         var numBlocks = cryptArr.length / 16;
@@ -302,84 +276,6 @@ var GibberishAES = {
         return t;
     },
 
-    // mixColumns:function(state)
-    // {
-    // 	var column = [];
-    // 	var temp = [];
-    // 	/* iterate over the 4 columns */
-    // 	for (var i = 0; i < 4; i++){
-    // 		column[i] = this.mixColumn([state[i*4+0],state[i*4+1],state[i*4+2],state[i*4+3]]);
-    // 	}
-    // 	for (var i = 0; i < 4; i++){
-    // 		temp.push(column[i][0],column[i][1],column[i][2],column[i][3]);
-    // 	}
-    // 	return temp;
-    // },
-    //
-    // // galois multipication of 1 column of the 4x4 matrix
-    // mixColumn:function(column)
-    // {
-    // 	var mult = [];
-    // 	if(this.Decrypt){
-    // 		mult = [14,9,13,11];
-    // 	} else {
-    // 		mult = [2,1,1,3];
-    // 	}
-    // 	var cpy = [];
-    // 	for(var i = 0; i < 4; i++) {cpy[i] = column[i];}
-    //
-    // 	column[0] = 	this.galois_multiplication(cpy[0],mult[0]) ^
-    // 			this.galois_multiplication(cpy[3],mult[1]) ^
-    // 			this.galois_multiplication(cpy[2],mult[2]) ^
-    // 			this.galois_multiplication(cpy[1],mult[3]);
-    // 	column[1] = 	this.galois_multiplication(cpy[1],mult[0]) ^
-    // 			this.galois_multiplication(cpy[0],mult[1]) ^
-    // 			this.galois_multiplication(cpy[3],mult[2]) ^
-    // 			this.galois_multiplication(cpy[2],mult[3]);
-    // 	column[2] = 	this.galois_multiplication(cpy[2],mult[0]) ^
-    // 			this.galois_multiplication(cpy[1],mult[1]) ^
-    // 			this.galois_multiplication(cpy[0],mult[2]) ^
-    // 			this.galois_multiplication(cpy[3],mult[3]);
-    // 	column[3] = 	this.galois_multiplication(cpy[3],mult[0]) ^
-    // 			this.galois_multiplication(cpy[2],mult[1]) ^
-    // 			this.galois_multiplication(cpy[1],mult[2]) ^
-    // 			this.galois_multiplication(cpy[0],mult[3]);
-    // 	return column;
-    // },
-    //
-    // galois_multiplication:function(a,b)
-    // {
-    // 	var p = 0;
-    // 	for(var counter = 0; counter < 8; counter++)
-    // 	{
-    // 		if((b & 1) == 1) {p ^= a;}
-    // 		if(p > 0x100) {p ^= 0x100;}
-    // 		var hi_bit_set = (a & 0x80); //keep p 8 bit
-    // 		a <<= 1;
-    // 		if(a > 0x100) {a ^= 0x100;} //keep a 8 bit
-    // 		if(hi_bit_set === 0x80) {a ^= 0x1b;}
-    // 		if(a > 0x100) {a ^= 0x100;} //keep a 8 bit
-    // 		b >>= 1;
-    // 		if(b > 0x100) {b ^= 0x100;} //keep b 8 bit
-    // 	}
-    // 	return p;
-    // },
-    // mixColumns:function(s) {   // combine bytes of each col of state S [§5.1.3]
-    //   for (var c=0; c<4; c++) {
-    //     var a = [];  // 'a' is a copy of the current column from 's'
-    //     var b = [];  // 'b' is a•{02} in GF(2^8)
-    //     for (var r=0; r<4; r++) {
-    //       a[r] = s[r][c];
-    //       b[r] = s[r][c]&128 ? s[r][c]<<1 ^ 283 : s[r][c]<<1;
-    //     }
-    //     // a[n] ^ b[n] is a•{03} in GF(2^8)
-    //     s[0][c] = b[0] ^ a[1] ^ b[1] ^ a[2] ^ a[3]; // 2*a0 + 3*a1 + a2 + a3
-    //     s[1][c] = a[0] ^ b[1] ^ a[2] ^ b[2] ^ a[3]; // a0 * 2*a1 + 3*a2 + a3
-    //     s[2][c] = a[0] ^ a[1] ^ b[2] ^ a[3] ^ b[3]; // a0 + a1 + 2*a2 + 3*a3
-    //     s[3][c] = a[0] ^ b[0] ^ a[1] ^ a[2] ^ b[3]; // 3*a0 + a1 + a2 + 2*a3
-    //   }
-    //   return s;
-    // },
     addRoundKey: function(state, words, round) {
         var temp = [];
         for (var i = 0; i < 16; i++) {
@@ -647,7 +543,34 @@ var GibberishAES = {
     0x0f, 0x01, 0x13, 0x1d, 0x47, 0x49, 0x5b, 0x55, 0x7f, 0x71, 0x63, 0x6d,
     0xd7, 0xd9, 0xcb, 0xc5, 0xef, 0xe1, 0xf3, 0xfd, 0xa7, 0xa9, 0xbb, 0xb5,
     0x9f, 0x91, 0x83, 0x8d
-    ]
+    ],
+
+		enc: function(string, pass) {
+        // string, password in plaintext
+        var salt = this.randArr(8);
+        var pbe = this.openSSLKey(this.s2a(pass), salt);
+        var key = pbe.key;
+        var iv = pbe.iv;
+        string = this.s2a(string);
+        var cipherBlocks = this.rawEncrypt(string, key, iv);
+        var saltBlock = [[83, 97, 108, 116, 101, 100, 95, 95].concat(salt)];
+        // Spells out 'Salted__'
+        cipherBlocks = saltBlock.concat(cipherBlocks);
+        return this.Base64.encode(cipherBlocks);
+    },
+
+    dec: function(string, pass) {
+        // string, password in plaintext
+        var cryptArr = this.Base64.decode(string);
+        var salt = cryptArr.slice(8, 16);
+        var pbe = this.openSSLKey(this.s2a(pass), salt);
+        var key = pbe.key;
+        var iv = pbe.iv;
+        var cryptArr = cryptArr.slice(16, cryptArr.length)
+        // Take off the Salted__ffeeddcc
+        string = this.rawDecrypt(cryptArr, key, iv);
+        return string;
+    },
 
 };
 
@@ -749,9 +672,7 @@ GibberishAES.Hash = {
             for (lCount = 0; lCount <= 3; lCount++) {
                 lByte = (lValue >>> (lCount * 8)) & 255;
                 WordToHexArr = WordToHexArr.concat(lByte)
-                // WordToHexValue_temp = "0" + lByte.toString(16);
-                // WordToHexValue = WordToHexValue + WordToHexValue_temp.substr(WordToHexValue_temp.length-2,2);
-            }
+             }
             return WordToHexArr;
         };
 
