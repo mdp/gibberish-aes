@@ -19,17 +19,17 @@ Thanks to :
         // Defaults to 256 bit encryption
         enc = GibberishAES.enc("This sentence is super secret", "ultra-strong-password");
         alert(enc);
-        GibberishAES.dec(enc, "password");
+        GibberishAES.dec(enc, "ultra-strong-password");
 
         // Now change size to 128 bits
         GibberishAES.size(128);
         enc = GibberishAES.enc("This sentence is not so secret", "1234");
-        GibberishAES.dec(enc, "password");
+        GibberishAES.dec(enc, "1234");
 
         // And finally 192 bits
         GibberishAES.size(192);
         enc = GibberishAES.enc("I can't decide!!!", "whatever");
-        GibberishAES.dec(enc, "password");
+        GibberishAES.dec(enc, "whatever");
 
 #### OpenSSL Interop
 
