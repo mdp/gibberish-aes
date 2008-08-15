@@ -73,11 +73,11 @@ It's a pretty specific library built to handle a specific task, I doubt anyone u
 will sweat the extra size.
 
 ### Testing package
-Open up the test directory and you'll find an HTML file that allow use to verify its
+Open up the test directory and you'll find an HTML file that allows you to verify it's
 working with your browser, computing FIPS test vectors correctly, handling UTF-8 properly,
 and compatible with OpenSSL.
 
-The test script does require JQuery, included, but the
+The test script does require JQuery(included), but the
 basic GibberishAES does not. It's only included to make testing easier.
 
 ### Todo
