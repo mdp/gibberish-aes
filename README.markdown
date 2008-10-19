@@ -3,7 +3,7 @@
 
 ----
 
-Copyright: Mark Percival 2008 - <http://mpercival.com>
+Copyright: Mark Percival 2008 - <http://mpercival.com>  
 License: MIT
 
 Thanks to :
@@ -41,7 +41,7 @@ Thanks to :
         echo "U2FsdGVkX1+21O5RB08bavFTq7Yq/gChmXrO3f00tvJaT55A5pPvqw0zFVnHSW1o" | openssl enc -d -aes-256-cbc -a -k password
 
 ### Design Factors
-I built this library for a website I'm developing, which heavily influenced it's design.
+I built this library for [G.ibberish.com](http://g.ibberish.com), which heavily influenced it's design.
 It only supports CBC AES encryption mode, and it's built to be compatible with one
 of the most popular AES libraries available, OpenSSL.
 
