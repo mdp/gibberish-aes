@@ -1,28 +1,26 @@
-/*  Gibberish-AES 
-*		A lightweight Javascript Libray for OpenSSL compatible AES CBC encryption.
+/*! Gibberish-AES 
+* A lightweight Javascript Libray for OpenSSL compatible AES CBC encryption.
 *
-*		Author: Mark Percival
-*		Email: mark@mpercival.com
-*		Copyright: 	Mark Percival - http://mpercival.com 	2008
-*								Josh Davis - http://www.josh-davis.org/ecmaScrypt	2007
-*								Chris Veness - http://www.movable-type.co.uk/scripts/aes.html 2007
-*								Michel I. Gallant - http://www.jensign.com/
+* Author: Mark Percival
+* Email: mark@mpercival.com
+* Copyright: Mark Percival - http://mpercival.com 2008
+* Josh Davis - http://www.josh-davis.org/ecmaScrypt 2007
+* Chris Veness - http://www.movable-type.co.uk/scripts/aes.html 2007
+* Michel I. Gallant - http://www.jensign.com/
 *
-*		License: MIT
-*		Usage: Gibberish.encrypt("secret", "password", 256)
-*		Outputs: AES Encrypted text encoded in Base64
+* License: MIT
+* Usage: Gibberish.encrypt("secret", "password", 256)
+* Outputs: AES Encrypted text encoded in Base64
 */
 
 
-var GibberishAES = {
-
-    Nr: 14,
+var GibberishAES = (function(){
+    var Nr = 14,
     /* Default to 256 Bit Encryption */
-    Nb: 4,
-    Nk: 8,
-    Decrypt: false,
+    Nk = 8,
+    Decrypt = false,
 
-    enc_utf8: function(s)
+    enc_utf8 = function(s)
     {
         try {
             return unescape(encodeURIComponent(s));
@@ -32,7 +30,7 @@ var GibberishAES = {
         }
     },
 
-    dec_utf8: function(s)
+    dec_utf8 = function(s)
     {
         try {
             return decodeURIComponent(escape(s));
@@ -42,32 +40,32 @@ var GibberishAES = {
         }
     },
 
-    padBlock: function(byteArr)
+    padBlock = function(byteArr)
     {
-        var array = [];
+        var array = [], cpad, i;
         if (byteArr.length < 16) {
-            var cpad = 16 - byteArr.length;
-            var array = [cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad];
+            cpad = 16 - byteArr.length;
+            array = [cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad];
         }
-        for (var i = 0; i < byteArr.length; i++)
+        for (i = 0; i < byteArr.length; i++)
         {
-            array[i] = byteArr[i]
+            array[i] = byteArr[i];
         }
         return array;
     },
 
-    block2s: function(block, lastBlock)
+    block2s = function(block, lastBlock)
     {
-        var string = '';
+        var string = '', padding, i;
         if (lastBlock) {
-            var padding = block[15];
+            padding = block[15];
             if (padding > 16) {
                 throw ('Decryption error: Maybe bad key');
             }
             if (padding == 16) {
                 return '';
             }
-            for (var i = 0; i < 16 - padding; i++) {
+            for (i = 0; i < 16 - padding; i++) {
                 string += String.fromCharCode(block[i]);
             }
         } else {
@@ -78,16 +76,16 @@ var GibberishAES = {
         return string;
     },
 
-    a2h: function(numArr)
+    a2h = function(numArr)
     {
-        var string = '';
-        for (var i = 0; i < numArr.length; i++) {
+        var string = '', i;
+        for (i = 0; i < numArr.length; i++) {
             string += (numArr[i] < 16 ? '0': '') + numArr[i].toString(16);
         }
         return string;
     },
 
-    h2a: function(s)
+    h2a = function(s)
     {
         var ret = [];
         s.replace(/(..)/g,
@@ -97,139 +95,144 @@ var GibberishAES = {
         return ret;
     },
 
-    s2a: function(string) {
-				string = this.enc_utf8(string);
-        var array = [];
-        for (var i = 0; i < string.length; i++)
+    s2a = function(string) {
+        string = enc_utf8(string);
+        var array = [], i;
+        for (i = 0; i < string.length; i++)
         {
             array[i] = string.charCodeAt(i);
         }
         return array;
     },
 
-    size: function(newsize)
+    size = function(newsize)
     {
         switch (newsize)
         {
         case 128:
-            this.Nr = 10;
-            this.Nk = 4;
+            Nr = 10;
+            Nk = 4;
             break;
         case 192:
-            this.Nr = 12;
-            this.Nk = 6;
+            Nr = 12;
+            Nk = 6;
             break;
         case 256:
-            this.Nr = 14;
-            this.Nk = 8;
+            Nr = 14;
+            Nk = 8;
             break;
         default:
             throw ('Invalid Key Size Specified:' + newsize);
         }
     },
 
-    randArr: function(num) {
-        var result = []
-        for (var i = 0; i < num; i++) {
+    randArr = function(num) {
+        var result = [], i;
+        for (i = 0; i < num; i++) {
             result = result.concat(Math.floor(Math.random() * 256));
         }
         return result;
     },
 
-    openSSLKey: function(passwordArr, saltArr) {
+    openSSLKey = function(passwordArr, saltArr) {
         // Number of rounds depends on the size of the AES in use
         // 3 rounds for 256
-        //		2 rounds for the key, 1 for the IV
+        //        2 rounds for the key, 1 for the IV
         // 2 rounds for 128
-        //		1 round for the key, 1 round for the IV
+        //        1 round for the key, 1 round for the IV
         // 3 rounds for 192 since it's not evenly divided by 128 bits
-        var rounds = this.Nr >= 12 ? 3: 2;
-        var key = [];
-        var iv = [];
-        var md5_hash = [];
-        var result = [];
-        data00 = passwordArr.concat(saltArr);
+        var rounds = Nr >= 12 ? 3: 2,
+        key = [],
+        iv = [],
+        md5_hash = [],
+        result = [],
+        data00 = passwordArr.concat(saltArr),
+        i;
         md5_hash[0] = GibberishAES.Hash.MD5(data00);
         result = md5_hash[0];
-        for (var i = 1; i < rounds; i++) {
+        for (i = 1; i < rounds; i++) {
             md5_hash[i] = GibberishAES.Hash.MD5(md5_hash[i - 1].concat(data00));
             result = result.concat(md5_hash[i]);
         }
-        key = result.slice(0, 4 * this.Nk);
-        iv = result.slice(4 * this.Nk, 4 * this.Nk + 16);
+        key = result.slice(0, 4 * Nk);
+        iv = result.slice(4 * Nk, 4 * Nk + 16);
         return {
             key: key,
             iv: iv
         };
     },
 
-    rawEncrypt: function(plaintext, key, iv) {
+    rawEncrypt = function(plaintext, key, iv) {
         // plaintext, key and iv as byte arrays
-        key = this.expandKey(key);
-        var numBlocks = Math.ceil(plaintext.length / 16);
-        var blocks = [];
-        for (var i = 0; i < numBlocks; i++) {
-            blocks[i] = this.padBlock(plaintext.slice(i * 16, i * 16 + 16));
+        key = expandKey(key);
+        var numBlocks = Math.ceil(plaintext.length / 16),
+        blocks = [],
+        i,
+        cipherBlocks = [];
+        for (i = 0; i < numBlocks; i++) {
+            blocks[i] = padBlock(plaintext.slice(i * 16, i * 16 + 16));
         }
         if (plaintext.length % 16 === 0) {
             blocks.push([16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16]);
             // CBC OpenSSL padding scheme
             numBlocks++;
         }
-        var cipherBlocks = [];
-        for (var i = 0; i < blocks.length; i++) {
-            blocks[i] = (i === 0) ? this.xorBlocks(blocks[i], iv) : this.xorBlocks(blocks[i], cipherBlocks[i - 1]);
-            cipherBlocks[i] = this.encryptBlock(blocks[i], key);
+        for (i = 0; i < blocks.length; i++) {
+            blocks[i] = (i === 0) ? xorBlocks(blocks[i], iv) : xorBlocks(blocks[i], cipherBlocks[i - 1]);
+            cipherBlocks[i] = encryptBlock(blocks[i], key);
         }
         return cipherBlocks;
     },
 
-    rawDecrypt: function(cryptArr, key, iv) {
+    rawDecrypt = function(cryptArr, key, iv) {
         //  cryptArr, key and iv as byte arrays
-        key = this.expandKey(key);
-        var numBlocks = cryptArr.length / 16;
-        var cipherBlocks = [];
-        for (var i = 0; i < numBlocks; i++) {
+        key = expandKey(key);
+        var numBlocks = cryptArr.length / 16,
+        cipherBlocks = [],
+        i,
+        plainBlocks = [],
+        string = '';
+        for (i = 0; i < numBlocks; i++) {
             cipherBlocks.push(cryptArr.slice(i * 16, (i + 1) * 16));
         }
-        var plainBlocks = [];
-        for (var i = cipherBlocks.length - 1; i >= 0; i--) {
-            plainBlocks[i] = this.decryptBlock(cipherBlocks[i], key);
-            plainBlocks[i] = (i === 0) ? this.xorBlocks(plainBlocks[i], iv) : this.xorBlocks(plainBlocks[i], cipherBlocks[i - 1]);
+        for (i = cipherBlocks.length - 1; i >= 0; i--) {
+            plainBlocks[i] = decryptBlock(cipherBlocks[i], key);
+            plainBlocks[i] = (i === 0) ? xorBlocks(plainBlocks[i], iv) : xorBlocks(plainBlocks[i], cipherBlocks[i - 1]);
         }
-        var string = '';
-        for (var i = 0; i < numBlocks - 1; i++) {
-            string += this.block2s(plainBlocks[i]);
+        for (i = 0; i < numBlocks - 1; i++) {
+            string += block2s(plainBlocks[i]);
         }
-        string += this.block2s(plainBlocks[i], true);
-        return this.dec_utf8(string);
+        string += block2s(plainBlocks[i], true);
+        return dec_utf8(string);
     },
 
-    encryptBlock: function(block, words) {
-        this.Decrypt = false;
-        var state = this.addRoundKey(block, words, 0);
-        for (var round = 1; round < (this.Nr + 1); round++) {
-            state = this.subBytes(state);
-            state = this.shiftRows(state);
-            if (round < this.Nr) {
-                state = this.mixColumns(state);
+    encryptBlock = function(block, words) {
+        Decrypt = false;
+        var state = addRoundKey(block, words, 0),
+        round;
+        for (round = 1; round < (Nr + 1); round++) {
+            state = subBytes(state);
+            state = shiftRows(state);
+            if (round < Nr) {
+                state = mixColumns(state);
             }
             //last round? don't mixColumns
-            state = this.addRoundKey(state, words, round);
+            state = addRoundKey(state, words, round);
         }
 
         return state;
     },
 
-    decryptBlock: function(block, words) {
-        this.Decrypt = true;
-        var state = this.addRoundKey(block, words, this.Nr);
-        for (var round = this.Nr - 1; round > -1; round--) {
-            state = this.shiftRows(state);
-            state = this.subBytes(state);
-            state = this.addRoundKey(state, words, round);
+    decryptBlock = function(block, words) {
+        Decrypt = true;
+        var state = addRoundKey(block, words, Nr),
+        round;
+        for (round = Nr - 1; round > -1; round--) {
+            state = shiftRows(state);
+            state = subBytes(state);
+            state = addRoundKey(state, words, round);
             if (round > 0) {
-                state = this.mixColumns(state);
+                state = mixColumns(state);
             }
             //last round? don't mixColumns
         }
@@ -237,112 +240,118 @@ var GibberishAES = {
         return state;
     },
 
-    subBytes: function(state) {
-        var S = this.Decrypt ? this.SBoxInv: this.SBox;
-        var temp = [];
-        for (var i = 0; i < 16; i++) {
+    subBytes = function(state) {
+        var S = Decrypt ? SBoxInv: SBox,
+        temp = [],
+        i;
+        for (i = 0; i < 16; i++) {
             temp[i] = S[state[i]];
         }
         return temp;
     },
 
-    shiftRows: function(state) {
-        var temp = [];
-        var shiftBy = this.Decrypt ? [0, 13, 10, 7, 4, 1, 14, 11, 8, 5, 2, 15, 12, 9, 6, 3] : [0, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12, 1, 6, 11];
-        for (var i = 0; i < 16; i++) {
+    shiftRows = function(state) {
+        var temp = [],
+        shiftBy = Decrypt ? [0, 13, 10, 7, 4, 1, 14, 11, 8, 5, 2, 15, 12, 9, 6, 3] : [0, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12, 1, 6, 11],
+        i;
+        for (i = 0; i < 16; i++) {
             temp[i] = state[shiftBy[i]];
         }
         return temp;
     },
 
-    mixColumns: function(state) {
-        var t = [];
-				if (!this.Decrypt) {
-	        for (var c = 0; c < 4; c++) {
-	            t[c * 4] = this.G2X[state[c * 4]] ^ this.G3X[state[1 + c * 4]] ^ state[2 + c * 4] ^ state[3 + c * 4];
-	            t[1 + c * 4] = state[c * 4] ^ this.G2X[state[1 + c * 4]] ^ this.G3X[state[2 + c * 4]] ^ state[3 + c * 4];
-	            t[2 + c * 4] = state[c * 4] ^ state[1 + c * 4] ^ this.G2X[state[2 + c * 4]] ^ this.G3X[state[3 + c * 4]];
-	            t[3 + c * 4] = this.G3X[state[c * 4]] ^ state[1 + c * 4] ^ state[2 + c * 4] ^ this.G2X[state[3 + c * 4]];
-	        }
-				}else {
-					for (var c = 0; c < 4; c++) {
-	            t[c*4] = this.GEX[state[c*4]] ^ this.GBX[state[1+c*4]] ^ this.GDX[state[2+c*4]] ^ this.G9X[state[3+c*4]];
-	            t[1+c*4] = this.G9X[state[c*4]] ^ this.GEX[state[1+c*4]] ^ this.GBX[state[2+c*4]] ^ this.GDX[state[3+c*4]];
-	            t[2+c*4] = this.GDX[state[c*4]] ^ this.G9X[state[1+c*4]] ^ this.GEX[state[2+c*4]] ^ this.GBX[state[3+c*4]];
-	            t[3+c*4] = this.GBX[state[c*4]] ^ this.GDX[state[1+c*4]] ^ this.G9X[state[2+c*4]] ^ this.GEX[state[3+c*4]];
-	        }
-				}
-				
+    mixColumns = function(state) {
+        var t = [],
+        c;
+        if (!Decrypt) {
+            for (c = 0; c < 4; c++) {
+                t[c * 4] = G2X[state[c * 4]] ^ G3X[state[1 + c * 4]] ^ state[2 + c * 4] ^ state[3 + c * 4];
+                t[1 + c * 4] = state[c * 4] ^ G2X[state[1 + c * 4]] ^ G3X[state[2 + c * 4]] ^ state[3 + c * 4];
+                t[2 + c * 4] = state[c * 4] ^ state[1 + c * 4] ^ G2X[state[2 + c * 4]] ^ G3X[state[3 + c * 4]];
+                t[3 + c * 4] = G3X[state[c * 4]] ^ state[1 + c * 4] ^ state[2 + c * 4] ^ G2X[state[3 + c * 4]];
+            }
+        }else {
+            for (c = 0; c < 4; c++) {
+                t[c*4] = GEX[state[c*4]] ^ GBX[state[1+c*4]] ^ GDX[state[2+c*4]] ^ G9X[state[3+c*4]];
+                t[1+c*4] = G9X[state[c*4]] ^ GEX[state[1+c*4]] ^ GBX[state[2+c*4]] ^ GDX[state[3+c*4]];
+                t[2+c*4] = GDX[state[c*4]] ^ G9X[state[1+c*4]] ^ GEX[state[2+c*4]] ^ GBX[state[3+c*4]];
+                t[3+c*4] = GBX[state[c*4]] ^ GDX[state[1+c*4]] ^ G9X[state[2+c*4]] ^ GEX[state[3+c*4]];
+            }
+        }
+        
         return t;
     },
 
-    addRoundKey: function(state, words, round) {
-        var temp = [];
-        for (var i = 0; i < 16; i++) {
+    addRoundKey = function(state, words, round) {
+        var temp = [],
+        i;
+        for (i = 0; i < 16; i++) {
             temp[i] = state[i] ^ words[round][i];
         }
         return temp;
     },
 
-    xorBlocks: function(block1, block2) {
-        var temp = [];
-        for (var i = 0; i < 16; i++) {
+    xorBlocks = function(block1, block2) {
+        var temp = [],
+        i;
+        for (i = 0; i < 16; i++) {
             temp[i] = block1[i] ^ block2[i];
         }
         return temp;
     },
 
-    expandKey: function(key) {
+    expandKey = function(key) {
         // Expects a 1d number array
-        var Nb = this.Nb;
-        var Nr = this.Nr;
-        var Nk = this.Nk;
+        var w = [],
+        temp = [],
+        i,
+        r,
+        t,
+        flat = [],
+        j;
 
-        var w = [];
-        var temp = [];
-
-        for (var i = 0; i < Nk; i++) {
-            var r = [key[4 * i], key[4 * i + 1], key[4 * i + 2], key[4 * i + 3]];
+        for (i = 0; i < Nk; i++) {
+            r = [key[4 * i], key[4 * i + 1], key[4 * i + 2], key[4 * i + 3]];
             w[i] = r;
         }
 
-        for (var i = Nk; i < (4 * (Nr + 1)); i++) {
+        for (i = Nk; i < (4 * (Nr + 1)); i++) {
             w[i] = [];
-            for (var t = 0; t < 4; t++) {
+            for (t = 0; t < 4; t++) {
                 temp[t] = w[i - 1][t];
             }
             if (i % Nk === 0) {
-                temp = this.subWord(this.rotWord(temp));
-                temp[0] ^= this.Rcon[i / Nk - 1];
+                temp = subWord(rotWord(temp));
+                temp[0] ^= Rcon[i / Nk - 1];
             } else if (Nk > 6 && i % Nk == 4) {
-                temp = this.subWord(temp);
+                temp = subWord(temp);
             }
-            for (var t = 0; t < 4; t++) {
+            for (t = 0; t < 4; t++) {
                 w[i][t] = w[i - Nk][t] ^ temp[t];
             }
         }
-        var flat = [];
-        for (var i = 0; i < (Nr + 1); i++) {
+        for (i = 0; i < (Nr + 1); i++) {
             flat[i] = [];
-            for (var j = 0; j < 4; j++) {
+            for (j = 0; j < 4; j++) {
                 flat[i].push(w[i * 4 + j][0], w[i * 4 + j][1], w[i * 4 + j][2], w[i * 4 + j][3]);
             }
         }
         return flat;
     },
 
-    subWord: function(w) {
+    subWord = function(w) {
         // apply SBox to 4-byte word w
         for (var i = 0; i < 4; i++) {
-            w[i] = this.SBox[w[i]];
+            w[i] = SBox[w[i]];
         }
         return w;
     },
 
-    rotWord: function(w) {
+    rotWord = function(w) {
         // rotate 4-byte word w left by one byte
-        var tmp = w[0];
-        for (var i = 0; i < 4; i++) {
+        var tmp = w[0],
+        i;
+        for (i = 0; i < 4; i++) {
             w[i] = w[i + 1];
         }
         w[3] = tmp;
@@ -351,7 +360,7 @@ var GibberishAES = {
 
 
     // S-box
-    SBox: [
+    SBox = [
     99, 124, 119, 123, 242, 107, 111, 197, 48, 1, 103, 43, 254, 215, 171,
     118, 202, 130, 201, 125, 250, 89, 71, 240, 173, 212, 162, 175, 156, 164,
     114, 192, 183, 253, 147, 38, 54, 63, 247, 204, 52, 165, 229, 241, 113,
@@ -372,7 +381,7 @@ var GibberishAES = {
     22],
 
     // Precomputed lookup table for the inverse SBox
-    SBoxInv: [
+    SBoxInv = [
     82, 9, 106, 213, 48, 54, 165, 56, 191, 64, 163, 158, 129, 243, 215,
     251, 124, 227, 57, 130, 155, 47, 255, 135, 52, 142, 67, 68, 196, 222,
     233, 203, 84, 123, 148, 50, 166, 194, 35, 61, 238, 76, 149, 11, 66,
@@ -392,10 +401,10 @@ var GibberishAES = {
     23, 43, 4, 126, 186, 119, 214, 38, 225, 105, 20, 99, 85, 33, 12,
     125],
     // Rijndael Rcon
-    Rcon: [1, 2, 4, 8, 16, 32, 64, 128, 27, 54, 108, 216, 171, 77, 154, 47, 94,
+    Rcon = [1, 2, 4, 8, 16, 32, 64, 128, 27, 54, 108, 216, 171, 77, 154, 47, 94,
     188, 99, 198, 151, 53, 106, 212, 179, 125, 250, 239, 197, 145],
 
-    G2X: [
+    G2X = [
     0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, 0x10, 0x12, 0x14, 0x16,
     0x18, 0x1a, 0x1c, 0x1e, 0x20, 0x22, 0x24, 0x26, 0x28, 0x2a, 0x2c, 0x2e,
     0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e, 0x40, 0x42, 0x44, 0x46,
@@ -420,7 +429,7 @@ var GibberishAES = {
     0xe3, 0xe1, 0xe7, 0xe5
     ],
 
-    G3X: [
+    G3X = [
     0x00, 0x03, 0x06, 0x05, 0x0c, 0x0f, 0x0a, 0x09, 0x18, 0x1b, 0x1e, 0x1d,
     0x14, 0x17, 0x12, 0x11, 0x30, 0x33, 0x36, 0x35, 0x3c, 0x3f, 0x3a, 0x39,
     0x28, 0x2b, 0x2e, 0x2d, 0x24, 0x27, 0x22, 0x21, 0x60, 0x63, 0x66, 0x65,
@@ -445,7 +454,7 @@ var GibberishAES = {
     0x1f, 0x1c, 0x19, 0x1a
     ],
 
-    G9X: [
+    G9X = [
     0x00, 0x09, 0x12, 0x1b, 0x24, 0x2d, 0x36, 0x3f, 0x48, 0x41, 0x5a, 0x53,
     0x6c, 0x65, 0x7e, 0x77, 0x90, 0x99, 0x82, 0x8b, 0xb4, 0xbd, 0xa6, 0xaf,
     0xd8, 0xd1, 0xca, 0xc3, 0xfc, 0xf5, 0xee, 0xe7, 0x3b, 0x32, 0x29, 0x20,
@@ -470,7 +479,7 @@ var GibberishAES = {
     0x5d, 0x54, 0x4f, 0x46
     ],
 
-    GBX: [
+    GBX = [
     0x00, 0x0b, 0x16, 0x1d, 0x2c, 0x27, 0x3a, 0x31, 0x58, 0x53, 0x4e, 0x45,
     0x74, 0x7f, 0x62, 0x69, 0xb0, 0xbb, 0xa6, 0xad, 0x9c, 0x97, 0x8a, 0x81,
     0xe8, 0xe3, 0xfe, 0xf5, 0xc4, 0xcf, 0xd2, 0xd9, 0x7b, 0x70, 0x6d, 0x66,
@@ -495,7 +504,7 @@ var GibberishAES = {
     0xbe, 0xb5, 0xa8, 0xa3
     ],
 
-    GDX: [
+    GDX = [
     0x00, 0x0d, 0x1a, 0x17, 0x34, 0x39, 0x2e, 0x23, 0x68, 0x65, 0x72, 0x7f,
     0x5c, 0x51, 0x46, 0x4b, 0xd0, 0xdd, 0xca, 0xc7, 0xe4, 0xe9, 0xfe, 0xf3,
     0xb8, 0xb5, 0xa2, 0xaf, 0x8c, 0x81, 0x96, 0x9b, 0xbb, 0xb6, 0xa1, 0xac,
@@ -520,7 +529,7 @@ var GibberishAES = {
     0x80, 0x8d, 0x9a, 0x97
     ],
 
-    GEX: [
+    GEX = [
     0x00, 0x0e, 0x1c, 0x12, 0x38, 0x36, 0x24, 0x2a, 0x70, 0x7e, 0x6c, 0x62,
     0x48, 0x46, 0x54, 0x5a, 0xe0, 0xee, 0xfc, 0xf2, 0xd8, 0xd6, 0xc4, 0xca,
     0x90, 0x9e, 0x8c, 0x82, 0xa8, 0xa6, 0xb4, 0xba, 0xdb, 0xd5, 0xc7, 0xc9,
@@ -545,44 +554,41 @@ var GibberishAES = {
     0x9f, 0x91, 0x83, 0x8d
     ],
 
-		enc: function(string, pass) {
+    enc = function(string, pass) {
         // string, password in plaintext
-        var salt = this.randArr(8);
-        var pbe = this.openSSLKey(this.s2a(pass), salt);
-        var key = pbe.key;
-        var iv = pbe.iv;
-        string = this.s2a(string);
-        var cipherBlocks = this.rawEncrypt(string, key, iv);
-        var saltBlock = [[83, 97, 108, 116, 101, 100, 95, 95].concat(salt)];
+        var salt = randArr(8),
+        pbe = openSSLKey(s2a(pass), salt),
+        key = pbe.key,
+        iv = pbe.iv,
+        cipherBlocks,
+        saltBlock = [[83, 97, 108, 116, 101, 100, 95, 95].concat(salt)];
+        string = s2a(string);
+        cipherBlocks = rawEncrypt(string, key, iv);
         // Spells out 'Salted__'
         cipherBlocks = saltBlock.concat(cipherBlocks);
-        return this.Base64.encode(cipherBlocks);
+        return Base64.encode(cipherBlocks);
     },
 
-    dec: function(string, pass) {
+    dec = function(string, pass) {
         // string, password in plaintext
-        var cryptArr = this.Base64.decode(string);
-        var salt = cryptArr.slice(8, 16);
-        var pbe = this.openSSLKey(this.s2a(pass), salt);
-        var key = pbe.key;
-        var iv = pbe.iv;
-        var cryptArr = cryptArr.slice(16, cryptArr.length)
+        var cryptArr = Base64.decode(string),
+        salt = cryptArr.slice(8, 16),
+        pbe = openSSLKey(s2a(pass), salt),
+        key = pbe.key,
+        iv = pbe.iv;
+        cryptArr = cryptArr.slice(16, cryptArr.length);
         // Take off the Salted__ffeeddcc
-        string = this.rawDecrypt(cryptArr, key, iv);
+        string = rawDecrypt(cryptArr, key, iv);
         return string;
     },
+    
+    MD5 = function(numArr) {
 
-};
-
-GibberishAES.Hash = {
-
-    MD5: function(numArr) {
-
-        function RotateLeft(lValue, iShiftBits) {
+        function rotateLeft(lValue, iShiftBits) {
             return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));
         }
 
-        function AddUnsigned(lX, lY) {
+        function addUnsigned(lX, lY) {
             var lX4,
             lY4,
             lX8,
@@ -607,48 +613,48 @@ GibberishAES.Hash = {
             }
         }
 
-        function F(x, y, z) {
+        function f(x, y, z) {
             return (x & y) | ((~x) & z);
         }
-        function G(x, y, z) {
+        function g(x, y, z) {
             return (x & z) | (y & (~z));
         }
-        function H(x, y, z) {
+        function h(x, y, z) {
             return (x ^ y ^ z);
         }
-        function I(x, y, z) {
+        function funcI(x, y, z) {
             return (y ^ (x | (~z)));
         }
 
-        function FF(a, b, c, d, x, s, ac) {
-            a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
-            return AddUnsigned(RotateLeft(a, s), b);
-        };
+        function ff(a, b, c, d, x, s, ac) {
+            a = addUnsigned(a, addUnsigned(addUnsigned(f(b, c, d), x), ac));
+            return addUnsigned(rotateLeft(a, s), b);
+        }
 
-        function GG(a, b, c, d, x, s, ac) {
-            a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
-            return AddUnsigned(RotateLeft(a, s), b);
-        };
+        function gg(a, b, c, d, x, s, ac) {
+            a = addUnsigned(a, addUnsigned(addUnsigned(g(b, c, d), x), ac));
+            return addUnsigned(rotateLeft(a, s), b);
+        }
 
-        function HH(a, b, c, d, x, s, ac) {
-            a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
-            return AddUnsigned(RotateLeft(a, s), b);
-        };
+        function hh(a, b, c, d, x, s, ac) {
+            a = addUnsigned(a, addUnsigned(addUnsigned(h(b, c, d), x), ac));
+            return addUnsigned(rotateLeft(a, s), b);
+        }
 
-        function II(a, b, c, d, x, s, ac) {
-            a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
-            return AddUnsigned(RotateLeft(a, s), b);
-        };
+        function ii(a, b, c, d, x, s, ac) {
+            a = addUnsigned(a, addUnsigned(addUnsigned(funcI(b, c, d), x), ac));
+            return addUnsigned(rotateLeft(a, s), b);
+        }
 
-        function ConvertToWordArray(numArr) {
-            var lWordCount;
-            var lMessageLength = numArr.length;
-            var lNumberOfWords_temp1 = lMessageLength + 8;
-            var lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64;
-            var lNumberOfWords = (lNumberOfWords_temp2 + 1) * 16;
-            var lWordArray = Array(lNumberOfWords - 1);
-            var lBytePosition = 0;
-            var lByteCount = 0;
+        function convertToWordArray(numArr) {
+            var lWordCount,
+            lMessageLength = numArr.length,
+            lNumberOfWords_temp1 = lMessageLength + 8,
+            lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64,
+            lNumberOfWords = (lNumberOfWords_temp2 + 1) * 16,
+            lWordArray = [],
+            lBytePosition = 0,
+            lByteCount = 0;
             while (lByteCount < lMessageLength) {
                 lWordCount = (lByteCount - (lByteCount % 4)) / 4;
                 lBytePosition = (lByteCount % 4) * 8;
@@ -661,28 +667,28 @@ GibberishAES.Hash = {
             lWordArray[lNumberOfWords - 2] = lMessageLength << 3;
             lWordArray[lNumberOfWords - 1] = lMessageLength >>> 29;
             return lWordArray;
-        };
+        }
 
-        function WordToHex(lValue) {
-            var WordToHexValue = "",
-            WordToHexValue_temp = "",
-            lByte,
-            lCount;
-            var WordToHexArr = []
+        function wordToHex(lValue) {
+            var lByte,
+            lCount,
+            wordToHexArr = [];
             for (lCount = 0; lCount <= 3; lCount++) {
                 lByte = (lValue >>> (lCount * 8)) & 255;
-                WordToHexArr = WordToHexArr.concat(lByte)
+                wordToHexArr = wordToHexArr.concat(lByte);
              }
-            return WordToHexArr;
-        };
+            return wordToHexArr;
+        }
 
-        function Utf8Encode(string) {
+        /*function utf8Encode(string) {
             string = string.replace(/\r\n/g, "\n");
-            var utftext = "";
+            var utftext = "",
+            n,
+            c;
 
-            for (var n = 0; n < string.length; n++) {
+            for (n = 0; n < string.length; n++) {
 
-                var c = string.charCodeAt(n);
+                c = string.charCodeAt(n);
 
                 if (c < 128) {
                     utftext += String.fromCharCode(c);
@@ -700,10 +706,10 @@ GibberishAES.Hash = {
             }
 
             return utftext;
-        };
+        }*/
 
-        var x = Array();
-        var k,
+        var x = [],
+        k,
         AA,
         BB,
         CC,
@@ -711,25 +717,25 @@ GibberishAES.Hash = {
         a,
         b,
         c,
-        d;
-        var S11 = 7,
+        d,
+        S11 = 7,
         S12 = 12,
         S13 = 17,
-        S14 = 22;
-        var S21 = 5,
+        S14 = 22,
+        S21 = 5,
         S22 = 9,
         S23 = 14,
-        S24 = 20;
-        var S31 = 4,
+        S24 = 20,
+        S31 = 4,
         S32 = 11,
         S33 = 16,
-        S34 = 23;
-        var S41 = 6,
+        S34 = 23,
+        S41 = 6,
         S42 = 10,
         S43 = 15,
         S44 = 21;
 
-        x = ConvertToWordArray(numArr);
+        x = convertToWordArray(numArr);
 
         a = 0x67452301;
         b = 0xEFCDAB89;
@@ -741,140 +747,178 @@ GibberishAES.Hash = {
             BB = b;
             CC = c;
             DD = d;
-            a = FF(a, b, c, d, x[k + 0], S11, 0xD76AA478);
-            d = FF(d, a, b, c, x[k + 1], S12, 0xE8C7B756);
-            c = FF(c, d, a, b, x[k + 2], S13, 0x242070DB);
-            b = FF(b, c, d, a, x[k + 3], S14, 0xC1BDCEEE);
-            a = FF(a, b, c, d, x[k + 4], S11, 0xF57C0FAF);
-            d = FF(d, a, b, c, x[k + 5], S12, 0x4787C62A);
-            c = FF(c, d, a, b, x[k + 6], S13, 0xA8304613);
-            b = FF(b, c, d, a, x[k + 7], S14, 0xFD469501);
-            a = FF(a, b, c, d, x[k + 8], S11, 0x698098D8);
-            d = FF(d, a, b, c, x[k + 9], S12, 0x8B44F7AF);
-            c = FF(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1);
-            b = FF(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
-            a = FF(a, b, c, d, x[k + 12], S11, 0x6B901122);
-            d = FF(d, a, b, c, x[k + 13], S12, 0xFD987193);
-            c = FF(c, d, a, b, x[k + 14], S13, 0xA679438E);
-            b = FF(b, c, d, a, x[k + 15], S14, 0x49B40821);
-            a = GG(a, b, c, d, x[k + 1], S21, 0xF61E2562);
-            d = GG(d, a, b, c, x[k + 6], S22, 0xC040B340);
-            c = GG(c, d, a, b, x[k + 11], S23, 0x265E5A51);
-            b = GG(b, c, d, a, x[k + 0], S24, 0xE9B6C7AA);
-            a = GG(a, b, c, d, x[k + 5], S21, 0xD62F105D);
-            d = GG(d, a, b, c, x[k + 10], S22, 0x2441453);
-            c = GG(c, d, a, b, x[k + 15], S23, 0xD8A1E681);
-            b = GG(b, c, d, a, x[k + 4], S24, 0xE7D3FBC8);
-            a = GG(a, b, c, d, x[k + 9], S21, 0x21E1CDE6);
-            d = GG(d, a, b, c, x[k + 14], S22, 0xC33707D6);
-            c = GG(c, d, a, b, x[k + 3], S23, 0xF4D50D87);
-            b = GG(b, c, d, a, x[k + 8], S24, 0x455A14ED);
-            a = GG(a, b, c, d, x[k + 13], S21, 0xA9E3E905);
-            d = GG(d, a, b, c, x[k + 2], S22, 0xFCEFA3F8);
-            c = GG(c, d, a, b, x[k + 7], S23, 0x676F02D9);
-            b = GG(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
-            a = HH(a, b, c, d, x[k + 5], S31, 0xFFFA3942);
-            d = HH(d, a, b, c, x[k + 8], S32, 0x8771F681);
-            c = HH(c, d, a, b, x[k + 11], S33, 0x6D9D6122);
-            b = HH(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
-            a = HH(a, b, c, d, x[k + 1], S31, 0xA4BEEA44);
-            d = HH(d, a, b, c, x[k + 4], S32, 0x4BDECFA9);
-            c = HH(c, d, a, b, x[k + 7], S33, 0xF6BB4B60);
-            b = HH(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
-            a = HH(a, b, c, d, x[k + 13], S31, 0x289B7EC6);
-            d = HH(d, a, b, c, x[k + 0], S32, 0xEAA127FA);
-            c = HH(c, d, a, b, x[k + 3], S33, 0xD4EF3085);
-            b = HH(b, c, d, a, x[k + 6], S34, 0x4881D05);
-            a = HH(a, b, c, d, x[k + 9], S31, 0xD9D4D039);
-            d = HH(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
-            c = HH(c, d, a, b, x[k + 15], S33, 0x1FA27CF8);
-            b = HH(b, c, d, a, x[k + 2], S34, 0xC4AC5665);
-            a = II(a, b, c, d, x[k + 0], S41, 0xF4292244);
-            d = II(d, a, b, c, x[k + 7], S42, 0x432AFF97);
-            c = II(c, d, a, b, x[k + 14], S43, 0xAB9423A7);
-            b = II(b, c, d, a, x[k + 5], S44, 0xFC93A039);
-            a = II(a, b, c, d, x[k + 12], S41, 0x655B59C3);
-            d = II(d, a, b, c, x[k + 3], S42, 0x8F0CCC92);
-            c = II(c, d, a, b, x[k + 10], S43, 0xFFEFF47D);
-            b = II(b, c, d, a, x[k + 1], S44, 0x85845DD1);
-            a = II(a, b, c, d, x[k + 8], S41, 0x6FA87E4F);
-            d = II(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
-            c = II(c, d, a, b, x[k + 6], S43, 0xA3014314);
-            b = II(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
-            a = II(a, b, c, d, x[k + 4], S41, 0xF7537E82);
-            d = II(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
-            c = II(c, d, a, b, x[k + 2], S43, 0x2AD7D2BB);
-            b = II(b, c, d, a, x[k + 9], S44, 0xEB86D391);
-            a = AddUnsigned(a, AA);
-            b = AddUnsigned(b, BB);
-            c = AddUnsigned(c, CC);
-            d = AddUnsigned(d, DD);
+            a = ff(a, b, c, d, x[k + 0], S11, 0xD76AA478);
+            d = ff(d, a, b, c, x[k + 1], S12, 0xE8C7B756);
+            c = ff(c, d, a, b, x[k + 2], S13, 0x242070DB);
+            b = ff(b, c, d, a, x[k + 3], S14, 0xC1BDCEEE);
+            a = ff(a, b, c, d, x[k + 4], S11, 0xF57C0FAF);
+            d = ff(d, a, b, c, x[k + 5], S12, 0x4787C62A);
+            c = ff(c, d, a, b, x[k + 6], S13, 0xA8304613);
+            b = ff(b, c, d, a, x[k + 7], S14, 0xFD469501);
+            a = ff(a, b, c, d, x[k + 8], S11, 0x698098D8);
+            d = ff(d, a, b, c, x[k + 9], S12, 0x8B44F7AF);
+            c = ff(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1);
+            b = ff(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
+            a = ff(a, b, c, d, x[k + 12], S11, 0x6B901122);
+            d = ff(d, a, b, c, x[k + 13], S12, 0xFD987193);
+            c = ff(c, d, a, b, x[k + 14], S13, 0xA679438E);
+            b = ff(b, c, d, a, x[k + 15], S14, 0x49B40821);
+            a = gg(a, b, c, d, x[k + 1], S21, 0xF61E2562);
+            d = gg(d, a, b, c, x[k + 6], S22, 0xC040B340);
+            c = gg(c, d, a, b, x[k + 11], S23, 0x265E5A51);
+            b = gg(b, c, d, a, x[k + 0], S24, 0xE9B6C7AA);
+            a = gg(a, b, c, d, x[k + 5], S21, 0xD62F105D);
+            d = gg(d, a, b, c, x[k + 10], S22, 0x2441453);
+            c = gg(c, d, a, b, x[k + 15], S23, 0xD8A1E681);
+            b = gg(b, c, d, a, x[k + 4], S24, 0xE7D3FBC8);
+            a = gg(a, b, c, d, x[k + 9], S21, 0x21E1CDE6);
+            d = gg(d, a, b, c, x[k + 14], S22, 0xC33707D6);
+            c = gg(c, d, a, b, x[k + 3], S23, 0xF4D50D87);
+            b = gg(b, c, d, a, x[k + 8], S24, 0x455A14ED);
+            a = gg(a, b, c, d, x[k + 13], S21, 0xA9E3E905);
+            d = gg(d, a, b, c, x[k + 2], S22, 0xFCEFA3F8);
+            c = gg(c, d, a, b, x[k + 7], S23, 0x676F02D9);
+            b = gg(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
+            a = hh(a, b, c, d, x[k + 5], S31, 0xFFFA3942);
+            d = hh(d, a, b, c, x[k + 8], S32, 0x8771F681);
+            c = hh(c, d, a, b, x[k + 11], S33, 0x6D9D6122);
+            b = hh(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
+            a = hh(a, b, c, d, x[k + 1], S31, 0xA4BEEA44);
+            d = hh(d, a, b, c, x[k + 4], S32, 0x4BDECFA9);
+            c = hh(c, d, a, b, x[k + 7], S33, 0xF6BB4B60);
+            b = hh(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
+            a = hh(a, b, c, d, x[k + 13], S31, 0x289B7EC6);
+            d = hh(d, a, b, c, x[k + 0], S32, 0xEAA127FA);
+            c = hh(c, d, a, b, x[k + 3], S33, 0xD4EF3085);
+            b = hh(b, c, d, a, x[k + 6], S34, 0x4881D05);
+            a = hh(a, b, c, d, x[k + 9], S31, 0xD9D4D039);
+            d = hh(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
+            c = hh(c, d, a, b, x[k + 15], S33, 0x1FA27CF8);
+            b = hh(b, c, d, a, x[k + 2], S34, 0xC4AC5665);
+            a = ii(a, b, c, d, x[k + 0], S41, 0xF4292244);
+            d = ii(d, a, b, c, x[k + 7], S42, 0x432AFF97);
+            c = ii(c, d, a, b, x[k + 14], S43, 0xAB9423A7);
+            b = ii(b, c, d, a, x[k + 5], S44, 0xFC93A039);
+            a = ii(a, b, c, d, x[k + 12], S41, 0x655B59C3);
+            d = ii(d, a, b, c, x[k + 3], S42, 0x8F0CCC92);
+            c = ii(c, d, a, b, x[k + 10], S43, 0xFFEFF47D);
+            b = ii(b, c, d, a, x[k + 1], S44, 0x85845DD1);
+            a = ii(a, b, c, d, x[k + 8], S41, 0x6FA87E4F);
+            d = ii(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
+            c = ii(c, d, a, b, x[k + 6], S43, 0xA3014314);
+            b = ii(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
+            a = ii(a, b, c, d, x[k + 4], S41, 0xF7537E82);
+            d = ii(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
+            c = ii(c, d, a, b, x[k + 2], S43, 0x2AD7D2BB);
+            b = ii(b, c, d, a, x[k + 9], S44, 0xEB86D391);
+            a = addUnsigned(a, AA);
+            b = addUnsigned(b, BB);
+            c = addUnsigned(c, CC);
+            d = addUnsigned(d, DD);
         }
 
-        var temp = WordToHex(a).concat(WordToHex(b), WordToHex(c), WordToHex(d));
-        return temp;
-    }
-};
-
-GibberishAES.Base64 = {
-    // Takes a Nx16x1 byte array and converts it to Base64
-    chars: [
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-    'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
-    'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-    'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
-    'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-    'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-    'w', 'x', 'y', 'z', '0', '1', '2', '3',
-    '4', '5', '6', '7', '8', '9', '+', '/'],
-
-    encode: function(b, withBreaks) {
-        var flatArr = [];
-        var b64 = '';
-        totalChunks = Math.floor(b.length * 16 / 3)
-        for (var i = 0; i < b.length * 16; i++) {
-            flatArr.push(b[Math.floor(i / 16)][i % 16]);
-        }
-        for (var i = 0; i < flatArr.length; i = i + 3) {
-            b64 += this.chars[flatArr[i] >> 2];
-            b64 += this.chars[((flatArr[i] & 3) << 4) | (flatArr[i + 1] >> 4)];
-            if (! (flatArr[i + 1] == null)) {
-                b64 += this.chars[((flatArr[i + 1] & 15) << 2) | (flatArr[i + 2] >> 6)];
-            } else {
-                b64 += '='
-            }
-            if (! (flatArr[i + 2] == null)) {
-                b64 += this.chars[flatArr[i + 2] & 63];
-            } else {
-                b64 += '='
-            }
-        }
-        // OpenSSL is super particular about line breaks
-        var broken_b64 = b64.slice(0, 64) + '\n';
-        for (var i = 1; i < (Math.ceil(b64.length / 64)); i++) {
-            broken_b64 += b64.slice(i * 64, i * 64 + 64) + (Math.ceil(b64.length / 64) == i + 1 ? '': '\n');
-        }
-        return broken_b64
+        return wordToHex(a).concat(wordToHex(b), wordToHex(c), wordToHex(d));
     },
+    
 
-    decode: function(string) {
-        string = string.replace(/\n/g, '');
-        var flatArr = [];
-        var c = [];
-        var b = [];
-        for (var i = 0; i < string.length; i = i + 4) {
-            c[0] = this.chars.indexOf(string.charAt(i));
-            c[1] = this.chars.indexOf(string.charAt(i + 1));
-            c[2] = this.chars.indexOf(string.charAt(i + 2));
-            c[3] = this.chars.indexOf(string.charAt(i + 3));
+    Base64 = (function(){
+        // Takes a Nx16x1 byte array and converts it to Base64
+        var _chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
+        chars = _chars.split(''),
+        
+        encode = function(b, withBreaks) {
+            var flatArr = [],
+            b64 = '',
+            i,
+            broken_b64;
+            totalChunks = Math.floor(b.length * 16 / 3);
+            for (i = 0; i < b.length * 16; i++) {
+                flatArr.push(b[Math.floor(i / 16)][i % 16]);
+            }
+            for (i = 0; i < flatArr.length; i = i + 3) {
+                b64 += chars[flatArr[i] >> 2];
+                b64 += chars[((flatArr[i] & 3) << 4) | (flatArr[i + 1] >> 4)];
+                if (! (flatArr[i + 1] === undefined)) {
+                    b64 += chars[((flatArr[i + 1] & 15) << 2) | (flatArr[i + 2] >> 6)];
+                } else {
+                    b64 += '=';
+                }
+                if (! (flatArr[i + 2] === undefined)) {
+                    b64 += chars[flatArr[i + 2] & 63];
+                } else {
+                    b64 += '=';
+                }
+            }
+            // OpenSSL is super particular about line breaks
+            broken_b64 = b64.slice(0, 64) + '\n';
+            for (i = 1; i < (Math.ceil(b64.length / 64)); i++) {
+                broken_b64 += b64.slice(i * 64, i * 64 + 64) + (Math.ceil(b64.length / 64) == i + 1 ? '': '\n');
+            }
+            return broken_b64;
+        },
+        
+        decode = function(string) {
+            string = string.replace(/\n/g, '');
+            var flatArr = [],
+            c = [],
+            b = [],
+            i;
+            for (i = 0; i < string.length; i = i + 4) {
+                c[0] = _chars.indexOf(string.charAt(i));
+                c[1] = _chars.indexOf(string.charAt(i + 1));
+                c[2] = _chars.indexOf(string.charAt(i + 2));
+                c[3] = _chars.indexOf(string.charAt(i + 3));
 
-            b[0] = (c[0] << 2) | (c[1] >> 4);
-            b[1] = ((c[1] & 15) << 4) | (c[2] >> 2);
-            b[2] = ((c[2] & 3) << 6) | c[3];
-            flatArr.push(b[0], b[1], b[2]);
+                b[0] = (c[0] << 2) | (c[1] >> 4);
+                b[1] = ((c[1] & 15) << 4) | (c[2] >> 2);
+                b[2] = ((c[2] & 3) << 6) | c[3];
+                flatArr.push(b[0], b[1], b[2]);
+            }
+            flatArr = flatArr.slice(0, flatArr.length - (flatArr.length % 16));
+            return flatArr;
+        };
+        
+        //internet explorer
+        if(typeof Array.indexOf === "function") {
+            _chars = chars;
         }
-        flatArr = flatArr.slice(0, flatArr.length - (flatArr.length % 16));
-        return flatArr;
-    },
+        
+        /*
+        //other way to solve internet explorer problem
+        if(!Array.indexOf){
+            Array.prototype.indexOf = function(obj){
+                for(var i=0; i<this.length; i++){
+                    if(this[i]===obj){
+                        return i;
+                    }
+                }
+                return -1;
+            }
+        }
+        */
+        
+        
+        return {
+            "encode": encode,
+            "decode": decode
+        };
+    })();
 
-};
+    return {
+        "size": size,
+        "h2a":h2a,
+        "expandKey":expandKey,
+        "encryptBlock":encryptBlock,
+        "decryptBlock":decryptBlock,
+        "Decrypt":Decrypt,
+        "s2a":s2a,
+        "rawEncrypt":rawEncrypt,
+        "dec":dec,
+        "openSSLKey":openSSLKey,
+        "a2h":a2h,
+        "enc":enc,
+        "Hash":{"MD5":MD5},
+        "Base64":Base64
+    };
+
+})();

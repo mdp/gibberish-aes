@@ -12,6 +12,7 @@ Thanks to :
   - Alex Boussinet [alex.boussinet@gmail.com](mailto:alex.boussinet@gmail.com)
   - Chris Veness - [http://www.movable-type.co.uk/scripts/aes.html](http://www.movable-type.co.uk/scripts/aes.html)
   - Michel I. Gallant - [http://www.jensign.com/](http://www.jensign.com/)
+  - Kristof Neirynck - [http://github.com/Crydust](http://github.com/Crydust) Fixes for IE7, YUI compression, JSLINT errors
 
 
 ### Usage
