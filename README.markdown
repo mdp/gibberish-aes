@@ -50,28 +50,19 @@ Although there's some things I dislike about OpenSSL, it's a commonly used and v
 library that's been open source for quite some time, and has received [FIPS certification][1]
 from NIST.
 
-One of my primary issues with other AES libraries is the lack of support for OpenSSL. I
-don't think one can expect users to trust a library that's not compatible with a standard
+One of my primary issues with other AES libraries is the lack of support for OpenSSL.
+One can't expect users to trust a library that's not compatible with a standard
 like OpenSSL. It's outside the range of many users to audit encryption code, and while
 compatibility doesn't ensure 100% compliance(especially with asymmetric encryption), one 
 can come pretty close with a symmetric algorithm like AES where the only difference is 
 how OpenSSL picks its random 8 byte salt.
 
-I built Gibberish to output its encrypted data in an identical format to OpenSSL, with
-an 8 byte salted PBE, and a Base64 encoding output. This should allow anyone using the
+I built the Gibberish library to output its encrypted data in an identical format to OpenSSL, with
+an 8 byte salted PBE. This should allow anyone using the
 library to interoperate with OpenSSL with the least amount of work.
 
-The size of this library is under 25k when it's compressed and I feel that's adequate for
-most uses. Although I used lookup tables for Galois fields, the cost of the size
-increase was well offset by the more than 10 fold increase in speed. I think 10k extra
-is a small price to pay for a speed increase like that.
-
-I've also done my best to keep the library clean and encapsulated. I want this library
-to be capable of being dropped into nearly any website and function without hindering
-other libraries in use. The downside to this is that it grew with the addition of its
-own Base64 library and MD5 hashing algorithm. I'm not sure that at 25k it really matters.
-It's a pretty specific library built to handle a specific task, I doubt anyone using it
-will sweat the extra size.
+I used lookup tables for Galois fields, which gave a 10x speed increase, although at the cost
+of some size.
 
 ### Testing package
 Open up the test directory and you'll find an HTML file that allows you to verify it's
@@ -81,14 +72,8 @@ and compatible with OpenSSL.
 The test script does require JQuery(included), but the
 basic GibberishAES does not. It's only included to make testing easier.
 
-### Todo
-I'm still cleaning up the code, but functionally it's finished and working. I've included a minified
-version of the library weighing in at just shy of 23k.
-
-I'll be happy to accept bug fixes or code updates, however I don't plan updating this library to
-support more than the basic AES CBC encryption. This falls outside of the scope of this project;
-I chose CBC because it's considered the most secure and popular form of AES encryption, and I
-don't feel the need to offer support for other modes.
+Alternatively you can test it live at 
+[http://projects.markpercival.us/gibberish-aes/gibberish-aes-test.html](http://projects.markpercival.us/gibberish-aes/gibberish-aes-test.html)
 
 ### SlowAES
 
