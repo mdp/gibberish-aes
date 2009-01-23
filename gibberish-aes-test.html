@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" lang="en"><head>
+<script type="text/javascript" src="jquery-1.2.6.js"></script>
+<script type="text/javascript" src="gibberish-aes.min.js"></script>
+<script type="text/javascript" src="gibberish-aes-test.js"></script>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<style type="text/css">
+	body {
+		margin-top: 1.0em;
+		background-color: #CC0000;
+	  font-family: "helvetica"; 
+		color: #ffffff;
+  }
+  #container {
+    margin: 0 auto;
+    width: 700px;
+  }
+	h1 { font-size: 3.8em; color: #F0D528; margin-bottom: 3px; }
+	h1 .small { font-size: 0.4em; }
+	h1 a { text-decoration: none }
+	h2 { font-size: 1.5em; color: #F0D528; }
+  h3 {  color: #F0D528; }
+  a { color: #FFFFCC; }
+  .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
+  .download { float: right; }
+	pre { background: #000; color: #fff; padding: 15px;}
+  hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+  .footer { text-align:center; padding-top:30px; font-style: italic; }
+  ul li:before { content: "\00BB"; padding-right: 0.2em;} 
+  li {list-style-type: none;}
+  
+</style>
+</head>
+<body>
+ <div id="container">
+  <h1 class="pagetitle">Gibberish AES Browser Test Page</h1>
+  <h2>FIPS Test Vectors</h2>
+  <ul>
+  <li id="f128">128 Bit:</li>
+  <li id="f192">192 Bit:</li>
+  <li id="f256">256 Bit:</li>
+  </ul>
+  <h2>OpenSSL Compatibility</h2>
+  <h3>Encryption</h3>
+  <ul>
+  <li id="oe128">128 Bit:</li>
+  <li id="oe192">192 Bit:</li>
+  <li id="oe256">256 Bit:</li>
+  </ul>
+  
+  <h3>Decryption</h3>
+  <ul>
+  <li id="od128">128 Bit: </li>
+  <li id="od192">192 Bit: </li>
+  <li id="od256">256 Bit: </li>
+  </ul>
+  
+  <h3>PBE Key IV Test</h3>
+  <ul>
+  <li id="pbe128">128 Bit:</li>
+  <li id="pbe192">192 Bit:</li>
+  <li id="pbe256">256 Bit:</li>
+  </ul>
+  <h2>UTF-8</h2>
+  <ul>
+  <li id="u128">128 Bit:</li>
+  <li id="u192">192 Bit:</li>
+  <li id="u256">256 Bit:</li>
+  </ul>
+  <h2>Speed</h2>
+  <a href="javascript:benchmark();">Start Benchmark</a>
+  <ul id="benchmarks">
+  <li id="enc">100 Encrypts: </li>
+  <li id="dec">100 Decrypts: </li>
+  <li id="bigenc">5 Big Encodes(4k): </li>
+  <li id="bigdec">5 Big Decodes(4k): </li>
+  </ul>
+ </div>
+</body>
+</html>
