@@ -65,22 +65,16 @@ It only supports CBC AES encryption mode, and it's built to be compatible with o
 of the most popular AES libraries available, OpenSSL. It also passed the [FIPS certification][1]
 from NIST.
 
-One of my primary issues with other AES libraries is the lack of support for OpenSSL. I
-don't think one can expect users to trust a library that's not compatible with a standard
+One of my primary issues with other AES libraries is the lack of support for OpenSSL.
+One can't expect users to trust a library that's not compatible with a standard
 like OpenSSL. It's outside the range of many users to audit encryption code, and while
 compatibility doesn't ensure 100% compliance(especially with asymmetric encryption), one 
 can come pretty close with a symmetric algorithm like AES where the only difference is 
 how OpenSSL picks its random 8 byte salt.
 
-I built Gibberish to output its encrypted data in an identical format to OpenSSL, with
-an 8 byte salted PBE, and a Base64 encoding output. This should allow anyone using the
-library to interoperate with OpenSSL with the least amount of work.
-
 The size of this library is under 25k when it's compressed and I feel that's adequate for
 most uses. Although I used lookup tables for Galois fields, the cost of the size
-increase was well offset by the more than 10 fold increase in speed. I think 10k extra
-is a small price to pay for a speed increase like that.
-
+increase was well offset by the more than 10 fold increase in speed.
 
 
 [1]: http://en.wikipedia.org/wiki/OpenSSL#FIPS_140-2_compliance "FIPS Compliance"
