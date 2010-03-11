@@ -4,11 +4,14 @@
 * Author: Mark Percival
 * Email: mark@mpercival.com
 * Copyright: Mark Percival - http://mpercival.com 2008
-* Josh Davis - http://www.josh-davis.org/ecmaScrypt 2007
-* Chris Veness - http://www.movable-type.co.uk/scripts/aes.html 2007
+*
+* With thanks to:
+* Josh Davis - http://www.josh-davis.org/ecmaScrypt
+* Chris Veness - http://www.movable-type.co.uk/scripts/aes.html
 * Michel I. Gallant - http://www.jensign.com/
 *
 * License: MIT
+*
 * Usage: Gibberish.encrypt("secret", "password", 256)
 * Outputs: AES Encrypted text encoded in Base64
 */
