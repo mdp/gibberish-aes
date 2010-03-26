@@ -187,7 +187,7 @@ var GibberishAES = (function(){
         return cipherBlocks;
     },
 
-    rawDecrypt = function(cryptArr, key, iv) {
+    rawDecrypt = function(cryptArr, key, iv, binary) {
         //  cryptArr, key and iv as byte arrays
         key = expandKey(key);
         var numBlocks = cryptArr.length / 16,
@@ -206,7 +206,7 @@ var GibberishAES = (function(){
             string += block2s(plainBlocks[i]);
         }
         string += block2s(plainBlocks[i], true);
-        return dec_utf8(string);
+        return binary ? string : dec_utf8(string); 
     },
 
     encryptBlock = function(block, words) {
@@ -557,7 +557,7 @@ var GibberishAES = (function(){
     0x9f, 0x91, 0x83, 0x8d
     ],
 
-    enc = function(string, pass) {
+    enc = function(string, pass, binary) {
         // string, password in plaintext
         var salt = randArr(8),
         pbe = openSSLKey(s2a(pass), salt),
@@ -565,14 +565,16 @@ var GibberishAES = (function(){
         iv = pbe.iv,
         cipherBlocks,
         saltBlock = [[83, 97, 108, 116, 101, 100, 95, 95].concat(salt)];
-        string = s2a(string);
+        if (!binary) {
+            string = s2a(string);
+        }
         cipherBlocks = rawEncrypt(string, key, iv);
         // Spells out 'Salted__'
         cipherBlocks = saltBlock.concat(cipherBlocks);
         return Base64.encode(cipherBlocks);
     },
 
-    dec = function(string, pass) {
+    dec = function(string, pass, binary) {
         // string, password in plaintext
         var cryptArr = Base64.decode(string),
         salt = cryptArr.slice(8, 16),
@@ -581,7 +583,7 @@ var GibberishAES = (function(){
         iv = pbe.iv;
         cryptArr = cryptArr.slice(16, cryptArr.length);
         // Take off the Salted__ffeeddcc
-        string = rawDecrypt(cryptArr, key, iv);
+        string = rawDecrypt(cryptArr, key, iv, binary);
         return string;
     },
     
