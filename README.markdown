@@ -78,4 +78,4 @@ increase was well offset by the more than 10 fold increase in speed.
 
 
 [1]: http://en.wikipedia.org/wiki/OpenSSL#FIPS_140-2_compliance "FIPS Compliance"
-[2]: http://projects.markpercival.us/gibberish-aes/gibberish-aes-test.html "Gibberish Tests"
+[2]: http://mdp.github.com/gibberish-aes/gibberish-aes-test.html "Gibberish Tests"
