@@ -12,7 +12,7 @@
 *
 * License: MIT
 *
-* Usage: Gibberish.encrypt("secret", "password", 256)
+* Usage: GibberishAES.enc("secret", "password")
 * Outputs: AES Encrypted text encoded in Base64
 */
 
