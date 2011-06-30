@@ -584,6 +584,8 @@ var GibberishAES = (function(){
         cryptArr = cryptArr.slice(16, cryptArr.length);
         // Take off the Salted__ffeeddcc
         string = rawDecrypt(cryptArr, key, iv, binary);
+        // Remove trailing line break! : Kosso
+        string = string.replace(/\n$/,'');
         return string;
     },
     
