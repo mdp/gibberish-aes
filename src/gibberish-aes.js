@@ -927,3 +927,7 @@ var GibberishAES = (function(){
     };
 
 })();
+
+if ( typeof define === "function" ) {
+    define(function () { return GibberishAES; });
+}
