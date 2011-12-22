@@ -100,6 +100,9 @@ var GibberishAES = (function(){
     },
 
     s2a = function(string) {
+        if (Object.prototype.toString.call([]) === '[object Array]') {
+            return string;
+        }
         string = enc_utf8(string);
         var array = [], i;
         for (i = 0; i < string.length; i++)
