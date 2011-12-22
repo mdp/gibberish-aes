@@ -1,4 +1,5 @@
-/*! Gibberish-AES 
+/**
+* @license Gibberish-AES 
 * A lightweight Javascript Libray for OpenSSL compatible AES CBC encryption.
 *
 * Author: Mark Percival
