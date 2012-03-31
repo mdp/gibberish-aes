@@ -566,14 +566,12 @@ var GibberishAES = (function(){
     enc = function(string, pass, binary) {
         // string, password in plaintext
         var salt = randArr(8),
-        pbe = openSSLKey(s2a(pass), salt),
+        pbe = openSSLKey(s2a(pass, binary), salt),
         key = pbe.key,
         iv = pbe.iv,
         cipherBlocks,
         saltBlock = [[83, 97, 108, 116, 101, 100, 95, 95].concat(salt)];
-        if (!binary) {
-            string = s2a(string, binary);
-        }
+        string = s2a(string, binary);
         cipherBlocks = rawEncrypt(string, key, iv);
         // Spells out 'Salted__'
         cipherBlocks = saltBlock.concat(cipherBlocks);
