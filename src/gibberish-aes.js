@@ -99,13 +99,18 @@ var GibberishAES = (function(){
         return ret;
     },
 
-    s2a = function(string) {
-        string = enc_utf8(string);
+    s2a = function(string, binary) {
         var array = [], i;
+
+        if (! binary) {
+            string = enc_utf8(string);
+        }
+
         for (i = 0; i < string.length; i++)
         {
             array[i] = string.charCodeAt(i);
         }
+
         return array;
     },
 
@@ -567,7 +572,7 @@ var GibberishAES = (function(){
         cipherBlocks,
         saltBlock = [[83, 97, 108, 116, 101, 100, 95, 95].concat(salt)];
         if (!binary) {
-            string = s2a(string);
+            string = s2a(string, binary);
         }
         cipherBlocks = rawEncrypt(string, key, iv);
         // Spells out 'Salted__'
@@ -579,7 +584,7 @@ var GibberishAES = (function(){
         // string, password in plaintext
         var cryptArr = Base64.decode(string),
         salt = cryptArr.slice(8, 16),
-        pbe = openSSLKey(s2a(pass), salt),
+        pbe = openSSLKey(s2a(pass, binary), salt),
         key = pbe.key,
         iv = pbe.iv;
         cryptArr = cryptArr.slice(16, cryptArr.length);
