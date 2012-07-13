@@ -10,6 +10,7 @@
 * Josh Davis - http://www.josh-davis.org/ecmaScrypt
 * Chris Veness - http://www.movable-type.co.uk/scripts/aes.html
 * Michel I. Gallant - http://www.jensign.com/
+* Jean-Luc Cooke <jlcooke@certainkey.com> 2012-07-12: added str2hex + str8hex + invertArr to compress G2X/G3X/G9X/GBX/GEX/SBox/SBoxInv/Rcon saving over 7KB, and added encString, decString, also made the MD5 routine more easlier compressible using yuicompressor.
 *
 * License: MIT
 *
@@ -367,8 +368,53 @@ var GibberishAES = (function(){
         return w;
     },
 
+// jlcooke: 2012-07-12: added str2hex + str8hex + invertArr to compress G2X/G3X/G9X/GBX/GEX/SBox/SBoxInv/Rcon saving over 7KB, and added encString, decString
+    str2hex = function(str,inv) {
+        var ret = [];
+        for (i=0; i<str.length; i+=2)
+            ret[i/2] = parseInt(str.substr(i,2), 16);
+        return ret;
+    },
+    str8hex = function(str,inv) {
+        var ret = [];
+        for (i=0; i<str.length; i+=2)
+            ret[i/2] = parseInt(str.substr(i,2), 16);
+        return ret;
+    },
+    str8hex = function(str,inv) {
+        var ret = [];
+        for (i=0; i<str.length; i+=8)
+            ret[i/8] = parseInt(str.substr(i,8), 16);
+        return ret;
+    },
+    invertArr = function(arr) {
+        var ret = [];
+        for (i=0; i<arr.length; i++)
+            ret[arr[i]] = i;
+        return ret;
+    },
+    Gx = function(x) {
+        multx = function(a, b) {
+            var i, ret;
+
+            ret = 0;
+            for (i=0; i<8; i++) {
+                ret = ((b&1)==1) ? ret^a : ret;
+                /* xmult */
+                a = (a>0x7f) ? 0x11b^(a<<1) : (a<<1);
+                b >>>= 1;
+            }
+
+            return ret;
+        };
+        var r = [];
+        for (var i=0; i<256; i++)
+            r[i] = multx(x, i);
+        return r;
+    },
 
     // S-box
+/*
     SBox = [
     99, 124, 119, 123, 242, 107, 111, 197, 48, 1, 103, 43, 254, 215, 171,
     118, 202, 130, 201, 125, 250, 89, 71, 240, 173, 212, 162, 175, 156, 164,
@@ -387,10 +433,10 @@ var GibberishAES = (function(){
     181, 102, 72, 3, 246, 14, 97, 53, 87, 185, 134, 193, 29, 158, 225,
     248, 152, 17, 105, 217, 142, 148, 155, 30, 135, 233, 206, 85, 40, 223,
     140, 161, 137, 13, 191, 230, 66, 104, 65, 153, 45, 15, 176, 84, 187,
-    22],
+    22], //*/ SBox = str2hex('637c777bf26b6fc53001672bfed7ab76ca82c97dfa5947f0add4a2af9ca472c0b7fd9326363ff7cc34a5e5f171d8311504c723c31896059a071280e2eb27b27509832c1a1b6e5aa0523bd6b329e32f8453d100ed20fcb15b6acbbe394a4c58cfd0efaafb434d338545f9027f503c9fa851a3408f929d38f5bcb6da2110fff3d2cd0c13ec5f974417c4a77e3d645d197360814fdc222a908846eeb814de5e0bdbe0323a0a4906245cc2d3ac629195e479e7c8376d8dd54ea96c56f4ea657aae08ba78252e1ca6b4c6e8dd741f4bbd8b8a703eb5664803f60e613557b986c11d9ee1f8981169d98e949b1e87e9ce5528df8ca1890dbfe6426841992d0fb054bb16'),
 
     // Precomputed lookup table for the inverse SBox
-    SBoxInv = [
+/*    SBoxInv = [
     82, 9, 106, 213, 48, 54, 165, 56, 191, 64, 163, 158, 129, 243, 215,
     251, 124, 227, 57, 130, 155, 47, 255, 135, 52, 142, 67, 68, 196, 222,
     233, 203, 84, 123, 148, 50, 166, 194, 35, 61, 238, 76, 149, 11, 66,
@@ -408,11 +454,15 @@ var GibberishAES = (function(){
     127, 169, 25, 181, 74, 13, 45, 229, 122, 159, 147, 201, 156, 239, 160,
     224, 59, 77, 174, 42, 245, 176, 200, 235, 187, 60, 131, 83, 153, 97,
     23, 43, 4, 126, 186, 119, 214, 38, 225, 105, 20, 99, 85, 33, 12,
-    125],
+    125], //*/ SBoxInv = invertArr(SBox),
+
     // Rijndael Rcon
+/*
     Rcon = [1, 2, 4, 8, 16, 32, 64, 128, 27, 54, 108, 216, 171, 77, 154, 47, 94,
     188, 99, 198, 151, 53, 106, 212, 179, 125, 250, 239, 197, 145],
+//*/ Rcon = str2hex('01020408102040801b366cd8ab4d9a2f5ebc63c697356ad4b37dfaefc591'),
 
+/*
     G2X = [
     0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, 0x10, 0x12, 0x14, 0x16,
     0x18, 0x1a, 0x1c, 0x1e, 0x20, 0x22, 0x24, 0x26, 0x28, 0x2a, 0x2c, 0x2e,
@@ -436,9 +486,9 @@ var GibberishAES = (function(){
     0xd3, 0xd1, 0xd7, 0xd5, 0xcb, 0xc9, 0xcf, 0xcd, 0xc3, 0xc1, 0xc7, 0xc5,
     0xfb, 0xf9, 0xff, 0xfd, 0xf3, 0xf1, 0xf7, 0xf5, 0xeb, 0xe9, 0xef, 0xed,
     0xe3, 0xe1, 0xe7, 0xe5
-    ],
+    ], //*/ G2X = Gx(2),
 
-    G3X = [
+/*    G3X = [
     0x00, 0x03, 0x06, 0x05, 0x0c, 0x0f, 0x0a, 0x09, 0x18, 0x1b, 0x1e, 0x1d,
     0x14, 0x17, 0x12, 0x11, 0x30, 0x33, 0x36, 0x35, 0x3c, 0x3f, 0x3a, 0x39,
     0x28, 0x2b, 0x2e, 0x2d, 0x24, 0x27, 0x22, 0x21, 0x60, 0x63, 0x66, 0x65,
@@ -461,8 +511,9 @@ var GibberishAES = (function(){
     0x37, 0x34, 0x31, 0x32, 0x23, 0x20, 0x25, 0x26, 0x2f, 0x2c, 0x29, 0x2a,
     0x0b, 0x08, 0x0d, 0x0e, 0x07, 0x04, 0x01, 0x02, 0x13, 0x10, 0x15, 0x16,
     0x1f, 0x1c, 0x19, 0x1a
-    ],
+    ], //*/ G3X = Gx(3),
 
+/*
     G9X = [
     0x00, 0x09, 0x12, 0x1b, 0x24, 0x2d, 0x36, 0x3f, 0x48, 0x41, 0x5a, 0x53,
     0x6c, 0x65, 0x7e, 0x77, 0x90, 0x99, 0x82, 0x8b, 0xb4, 0xbd, 0xa6, 0xaf,
@@ -486,9 +537,9 @@ var GibberishAES = (function(){
     0x85, 0x8c, 0x97, 0x9e, 0xe9, 0xe0, 0xfb, 0xf2, 0xcd, 0xc4, 0xdf, 0xd6,
     0x31, 0x38, 0x23, 0x2a, 0x15, 0x1c, 0x07, 0x0e, 0x79, 0x70, 0x6b, 0x62,
     0x5d, 0x54, 0x4f, 0x46
-    ],
+    ], //*/ G9X = Gx(9),
 
-    GBX = [
+/*    GBX = [
     0x00, 0x0b, 0x16, 0x1d, 0x2c, 0x27, 0x3a, 0x31, 0x58, 0x53, 0x4e, 0x45,
     0x74, 0x7f, 0x62, 0x69, 0xb0, 0xbb, 0xa6, 0xad, 0x9c, 0x97, 0x8a, 0x81,
     0xe8, 0xe3, 0xfe, 0xf5, 0xc4, 0xcf, 0xd2, 0xd9, 0x7b, 0x70, 0x6d, 0x66,
@@ -511,8 +562,9 @@ var GibberishAES = (function(){
     0x56, 0x5d, 0x40, 0x4b, 0x22, 0x29, 0x34, 0x3f, 0x0e, 0x05, 0x18, 0x13,
     0xca, 0xc1, 0xdc, 0xd7, 0xe6, 0xed, 0xf0, 0xfb, 0x92, 0x99, 0x84, 0x8f,
     0xbe, 0xb5, 0xa8, 0xa3
-    ],
+    ], //*/ GBX = Gx(0xb),
 
+/*
     GDX = [
     0x00, 0x0d, 0x1a, 0x17, 0x34, 0x39, 0x2e, 0x23, 0x68, 0x65, 0x72, 0x7f,
     0x5c, 0x51, 0x46, 0x4b, 0xd0, 0xdd, 0xca, 0xc7, 0xe4, 0xe9, 0xfe, 0xf3,
@@ -536,8 +588,9 @@ var GibberishAES = (function(){
     0x38, 0x35, 0x22, 0x2f, 0x64, 0x69, 0x7e, 0x73, 0x50, 0x5d, 0x4a, 0x47,
     0xdc, 0xd1, 0xc6, 0xcb, 0xe8, 0xe5, 0xf2, 0xff, 0xb4, 0xb9, 0xae, 0xa3,
     0x80, 0x8d, 0x9a, 0x97
-    ],
+    ], //*/ GDX = Gx(0xd),
 
+/*
     GEX = [
     0x00, 0x0e, 0x1c, 0x12, 0x38, 0x36, 0x24, 0x2a, 0x70, 0x7e, 0x6c, 0x62,
     0x48, 0x46, 0x54, 0x5a, 0xe0, 0xee, 0xfc, 0xf2, 0xd8, 0xd6, 0xc4, 0xca,
@@ -561,7 +614,7 @@ var GibberishAES = (function(){
     0x0f, 0x01, 0x13, 0x1d, 0x47, 0x49, 0x5b, 0x55, 0x7f, 0x71, 0x63, 0x6d,
     0xd7, 0xd9, 0xcb, 0xc5, 0xef, 0xe1, 0xf3, 0xfd, 0xa7, 0xa9, 0xbb, 0xb5,
     0x9f, 0x91, 0x83, 0x8d
-    ],
+    ], //*/ GEX = Gx(0xe),
 
     enc = function(string, pass, binary) {
         // string, password in plaintext
@@ -727,99 +780,84 @@ var GibberishAES = (function(){
         b,
         c,
         d,
-        S11 = 7,
-        S12 = 12,
-        S13 = 17,
-        S14 = 22,
-        S21 = 5,
-        S22 = 9,
-        S23 = 14,
-        S24 = 20,
-        S31 = 4,
-        S32 = 11,
-        S33 = 16,
-        S34 = 23,
-        S41 = 6,
-        S42 = 10,
-        S43 = 15,
-        S44 = 21;
+        rnd = str8hex('67452301EFCDAB8998BADCFE10325476D76AA478E8C7B756242070DBC1BDCEEEF57C0FAF4787C62AA8304613FD469501698098D88B44F7AFFFFF5BB1895CD7BE6B901122FD987193A679438E49B40821F61E2562C040B340265E5A51E9B6C7AAD62F105D02441453D8A1E681E7D3FBC821E1CDE6C33707D6F4D50D87455A14EDA9E3E905FCEFA3F8676F02D98D2A4C8AFFFA39428771F6816D9D6122FDE5380CA4BEEA444BDECFA9F6BB4B60BEBFBC70289B7EC6EAA127FAD4EF308504881D05D9D4D039E6DB99E51FA27CF8C4AC5665F4292244432AFF97AB9423A7FC93A039655B59C38F0CCC92FFEFF47D85845DD16FA87E4FFE2CE6E0A30143144E0811A1F7537E82BD3AF2352AD7D2BBEB86D391');
 
         x = convertToWordArray(numArr);
 
-        a = 0x67452301;
-        b = 0xEFCDAB89;
-        c = 0x98BADCFE;
-        d = 0x10325476;
+        a = rnd[0];
+        b = rnd[1];
+        c = rnd[2];
+        d = rnd[3]
 
         for (k = 0; k < x.length; k += 16) {
             AA = a;
             BB = b;
             CC = c;
             DD = d;
-            a = ff(a, b, c, d, x[k + 0], S11, 0xD76AA478);
-            d = ff(d, a, b, c, x[k + 1], S12, 0xE8C7B756);
-            c = ff(c, d, a, b, x[k + 2], S13, 0x242070DB);
-            b = ff(b, c, d, a, x[k + 3], S14, 0xC1BDCEEE);
-            a = ff(a, b, c, d, x[k + 4], S11, 0xF57C0FAF);
-            d = ff(d, a, b, c, x[k + 5], S12, 0x4787C62A);
-            c = ff(c, d, a, b, x[k + 6], S13, 0xA8304613);
-            b = ff(b, c, d, a, x[k + 7], S14, 0xFD469501);
-            a = ff(a, b, c, d, x[k + 8], S11, 0x698098D8);
-            d = ff(d, a, b, c, x[k + 9], S12, 0x8B44F7AF);
-            c = ff(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1);
-            b = ff(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
-            a = ff(a, b, c, d, x[k + 12], S11, 0x6B901122);
-            d = ff(d, a, b, c, x[k + 13], S12, 0xFD987193);
-            c = ff(c, d, a, b, x[k + 14], S13, 0xA679438E);
-            b = ff(b, c, d, a, x[k + 15], S14, 0x49B40821);
-            a = gg(a, b, c, d, x[k + 1], S21, 0xF61E2562);
-            d = gg(d, a, b, c, x[k + 6], S22, 0xC040B340);
-            c = gg(c, d, a, b, x[k + 11], S23, 0x265E5A51);
-            b = gg(b, c, d, a, x[k + 0], S24, 0xE9B6C7AA);
-            a = gg(a, b, c, d, x[k + 5], S21, 0xD62F105D);
-            d = gg(d, a, b, c, x[k + 10], S22, 0x2441453);
-            c = gg(c, d, a, b, x[k + 15], S23, 0xD8A1E681);
-            b = gg(b, c, d, a, x[k + 4], S24, 0xE7D3FBC8);
-            a = gg(a, b, c, d, x[k + 9], S21, 0x21E1CDE6);
-            d = gg(d, a, b, c, x[k + 14], S22, 0xC33707D6);
-            c = gg(c, d, a, b, x[k + 3], S23, 0xF4D50D87);
-            b = gg(b, c, d, a, x[k + 8], S24, 0x455A14ED);
-            a = gg(a, b, c, d, x[k + 13], S21, 0xA9E3E905);
-            d = gg(d, a, b, c, x[k + 2], S22, 0xFCEFA3F8);
-            c = gg(c, d, a, b, x[k + 7], S23, 0x676F02D9);
-            b = gg(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
-            a = hh(a, b, c, d, x[k + 5], S31, 0xFFFA3942);
-            d = hh(d, a, b, c, x[k + 8], S32, 0x8771F681);
-            c = hh(c, d, a, b, x[k + 11], S33, 0x6D9D6122);
-            b = hh(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
-            a = hh(a, b, c, d, x[k + 1], S31, 0xA4BEEA44);
-            d = hh(d, a, b, c, x[k + 4], S32, 0x4BDECFA9);
-            c = hh(c, d, a, b, x[k + 7], S33, 0xF6BB4B60);
-            b = hh(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
-            a = hh(a, b, c, d, x[k + 13], S31, 0x289B7EC6);
-            d = hh(d, a, b, c, x[k + 0], S32, 0xEAA127FA);
-            c = hh(c, d, a, b, x[k + 3], S33, 0xD4EF3085);
-            b = hh(b, c, d, a, x[k + 6], S34, 0x4881D05);
-            a = hh(a, b, c, d, x[k + 9], S31, 0xD9D4D039);
-            d = hh(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
-            c = hh(c, d, a, b, x[k + 15], S33, 0x1FA27CF8);
-            b = hh(b, c, d, a, x[k + 2], S34, 0xC4AC5665);
-            a = ii(a, b, c, d, x[k + 0], S41, 0xF4292244);
-            d = ii(d, a, b, c, x[k + 7], S42, 0x432AFF97);
-            c = ii(c, d, a, b, x[k + 14], S43, 0xAB9423A7);
-            b = ii(b, c, d, a, x[k + 5], S44, 0xFC93A039);
-            a = ii(a, b, c, d, x[k + 12], S41, 0x655B59C3);
-            d = ii(d, a, b, c, x[k + 3], S42, 0x8F0CCC92);
-            c = ii(c, d, a, b, x[k + 10], S43, 0xFFEFF47D);
-            b = ii(b, c, d, a, x[k + 1], S44, 0x85845DD1);
-            a = ii(a, b, c, d, x[k + 8], S41, 0x6FA87E4F);
-            d = ii(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
-            c = ii(c, d, a, b, x[k + 6], S43, 0xA3014314);
-            b = ii(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
-            a = ii(a, b, c, d, x[k + 4], S41, 0xF7537E82);
-            d = ii(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
-            c = ii(c, d, a, b, x[k + 2], S43, 0x2AD7D2BB);
-            b = ii(b, c, d, a, x[k + 9], S44, 0xEB86D391);
+            a = ff(a, b, c, d, x[k + 0], 7, rnd[4]);
+            d = ff(d, a, b, c, x[k + 1], 12, rnd[5]);
+            c = ff(c, d, a, b, x[k + 2], 17, rnd[6]);
+            b = ff(b, c, d, a, x[k + 3], 22, rnd[7]);
+            a = ff(a, b, c, d, x[k + 4], 7, rnd[8]);
+            d = ff(d, a, b, c, x[k + 5], 12, rnd[9]);
+            c = ff(c, d, a, b, x[k + 6], 17, rnd[10]);
+            b = ff(b, c, d, a, x[k + 7], 22, rnd[11]);
+            a = ff(a, b, c, d, x[k + 8], 7, rnd[12]);
+            d = ff(d, a, b, c, x[k + 9], 12, rnd[13]);
+            c = ff(c, d, a, b, x[k + 10], 17, rnd[14]);
+            b = ff(b, c, d, a, x[k + 11], 22, rnd[15]);
+            a = ff(a, b, c, d, x[k + 12], 7, rnd[16]);
+            d = ff(d, a, b, c, x[k + 13], 12, rnd[17]);
+            c = ff(c, d, a, b, x[k + 14], 17, rnd[18]);
+            b = ff(b, c, d, a, x[k + 15], 22, rnd[19]);
+            a = gg(a, b, c, d, x[k + 1], 5, rnd[20]);
+            d = gg(d, a, b, c, x[k + 6], 9, rnd[21]);
+            c = gg(c, d, a, b, x[k + 11], 14, rnd[22]);
+            b = gg(b, c, d, a, x[k + 0], 20, rnd[23]);
+            a = gg(a, b, c, d, x[k + 5], 5, rnd[24]);
+            d = gg(d, a, b, c, x[k + 10], 9, rnd[25]);
+            c = gg(c, d, a, b, x[k + 15], 14, rnd[26]);
+            b = gg(b, c, d, a, x[k + 4], 20, rnd[27]);
+            a = gg(a, b, c, d, x[k + 9], 5, rnd[28]);
+            d = gg(d, a, b, c, x[k + 14], 9, rnd[29]);
+            c = gg(c, d, a, b, x[k + 3], 14, rnd[30]);
+            b = gg(b, c, d, a, x[k + 8], 20, rnd[31]);
+            a = gg(a, b, c, d, x[k + 13], 5, rnd[32]);
+            d = gg(d, a, b, c, x[k + 2], 9, rnd[33]);
+            c = gg(c, d, a, b, x[k + 7], 14, rnd[34]);
+            b = gg(b, c, d, a, x[k + 12], 20, rnd[35]);
+            a = hh(a, b, c, d, x[k + 5], 4, rnd[36]);
+            d = hh(d, a, b, c, x[k + 8], 11, rnd[37]);
+            c = hh(c, d, a, b, x[k + 11], 16, rnd[38]);
+            b = hh(b, c, d, a, x[k + 14], 23, rnd[39]);
+            a = hh(a, b, c, d, x[k + 1], 4, rnd[40]);
+            d = hh(d, a, b, c, x[k + 4], 11, rnd[41]);
+            c = hh(c, d, a, b, x[k + 7], 16, rnd[42]);
+            b = hh(b, c, d, a, x[k + 10], 23, rnd[43]);
+            a = hh(a, b, c, d, x[k + 13], 4, rnd[44]);
+            d = hh(d, a, b, c, x[k + 0], 11, rnd[45]);
+            c = hh(c, d, a, b, x[k + 3], 16, rnd[46]);
+            b = hh(b, c, d, a, x[k + 6], 23, rnd[47]);
+            a = hh(a, b, c, d, x[k + 9], 4, rnd[48]);
+            d = hh(d, a, b, c, x[k + 12], 11, rnd[49]);
+            c = hh(c, d, a, b, x[k + 15], 16, rnd[50]);
+            b = hh(b, c, d, a, x[k + 2], 23, rnd[51]);
+            a = ii(a, b, c, d, x[k + 0], 6, rnd[52]);
+            d = ii(d, a, b, c, x[k + 7], 10, rnd[53]);
+            c = ii(c, d, a, b, x[k + 14], 15, rnd[54]);
+            b = ii(b, c, d, a, x[k + 5], 21, rnd[55]);
+            a = ii(a, b, c, d, x[k + 12], 6, rnd[56]);
+            d = ii(d, a, b, c, x[k + 3], 10, rnd[57]);
+            c = ii(c, d, a, b, x[k + 10], 15, rnd[58]);
+            b = ii(b, c, d, a, x[k + 1], 21, rnd[59]);
+            a = ii(a, b, c, d, x[k + 8], 6, rnd[60]);
+            d = ii(d, a, b, c, x[k + 15], 10, rnd[61]);
+            c = ii(c, d, a, b, x[k + 6], 15, rnd[62]);
+            b = ii(b, c, d, a, x[k + 13], 21, rnd[63]);
+            a = ii(a, b, c, d, x[k + 4], 6, rnd[64]);
+            d = ii(d, a, b, c, x[k + 11], 10, rnd[65]);
+            c = ii(c, d, a, b, x[k + 2], 15, rnd[66]);
+            b = ii(b, c, d, a, x[k + 9], 21, rnd[67]);
             a = addUnsigned(a, AA);
             b = addUnsigned(b, BB);
             c = addUnsigned(c, CC);
