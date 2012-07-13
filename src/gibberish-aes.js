@@ -377,12 +377,6 @@ var GibberishAES = (function(){
     },
     str8hex = function(str,inv) {
         var ret = [];
-        for (i=0; i<str.length; i+=2)
-            ret[i/2] = parseInt(str.substr(i,2), 16);
-        return ret;
-    },
-    str8hex = function(str,inv) {
-        var ret = [];
         for (i=0; i<str.length; i+=8)
             ret[i/8] = parseInt(str.substr(i,8), 16);
         return ret;
