@@ -643,6 +643,42 @@ var GibberishAES = (function(){
         string = rawDecrypt(cryptArr, key, iv, binary);
         return string;
     },
+
+    encString = function(plaintext, key, iv) {
+        plaintext = s2a(plaintext);
+
+        key = s2a(key);
+        for (var i=key.length; i<32; i++)
+            key[i] = 0;
+
+        if (iv == null) {
+            iv = genIV();
+        } else {
+            iv = s2a(iv);
+            for (var i=iv.length; i<16; i++)
+                iv[i] = 0;
+        }
+
+        var ct = rawEncrypt(plaintext, key, iv);
+        var ret = [iv];
+        for (var i=0; i<ct.length; i++)
+            ret[ret.length] = ct[i];
+        return Base64.encode(ret);
+    }
+
+    decString = function(ciphertext, key) {
+        var tmp = Base64.decode(ciphertext);
+        var iv = tmp.slice(0, 16);
+        var ct = tmp.slice(16, tmp.length);
+
+        key = s2a(key);
+        for (var i=key.length; i<32; i++)
+            key[i] = 0;
+
+        var pt = rawDecrypt(ct, key, iv, false);
+        return pt;
+    }
+
     
     MD5 = function(numArr) {
 
