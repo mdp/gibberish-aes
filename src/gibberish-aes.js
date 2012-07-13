@@ -10,7 +10,7 @@
 * Josh Davis - http://www.josh-davis.org/ecmaScrypt
 * Chris Veness - http://www.movable-type.co.uk/scripts/aes.html
 * Michel I. Gallant - http://www.jensign.com/
-* Jean-Luc Cooke <jlcooke@certainkey.com> 2012-07-12: added str2hex + str8hex + invertArr to compress G2X/G3X/G9X/GBX/GEX/SBox/SBoxInv/Rcon saving over 7KB, and added encString, decString, also made the MD5 routine more easlier compressible using yuicompressor.
+* Jean-Luc Cooke <jlcooke@certainkey.com> 2012-07-12: added strhex + invertArr to compress G2X/G3X/G9X/GBX/GEX/SBox/SBoxInv/Rcon saving over 7KB, and added encString, decString, also made the MD5 routine more easlier compressible using yuicompressor.
 *
 * License: MIT
 *
@@ -368,17 +368,11 @@ var GibberishAES = (function(){
         return w;
     },
 
-// jlcooke: 2012-07-12: added str2hex + str8hex + invertArr to compress G2X/G3X/G9X/GBX/GEX/SBox/SBoxInv/Rcon saving over 7KB, and added encString, decString
-    str2hex = function(str,inv) {
+// jlcooke: 2012-07-12: added strhex + invertArr to compress G2X/G3X/G9X/GBX/GEX/SBox/SBoxInv/Rcon saving over 7KB, and added encString, decString
+    strhex = function(str,size) {
         var ret = [];
-        for (i=0; i<str.length; i+=2)
-            ret[i/2] = parseInt(str.substr(i,2), 16);
-        return ret;
-    },
-    str8hex = function(str,inv) {
-        var ret = [];
-        for (i=0; i<str.length; i+=8)
-            ret[i/8] = parseInt(str.substr(i,8), 16);
+        for (i=0; i<str.length; i+=size)
+            ret[i/size] = parseInt(str.substr(i,size), 16);
         return ret;
     },
     invertArr = function(arr) {
@@ -387,23 +381,23 @@ var GibberishAES = (function(){
             ret[arr[i]] = i;
         return ret;
     },
+    Gxx = function(a, b) {
+        var i, ret;
+
+        ret = 0;
+        for (i=0; i<8; i++) {
+            ret = ((b&1)==1) ? ret^a : ret;
+            /* xmult */
+            a = (a>0x7f) ? 0x11b^(a<<1) : (a<<1);
+            b >>>= 1;
+        }
+
+        return ret;
+    },
     Gx = function(x) {
-        multx = function(a, b) {
-            var i, ret;
-
-            ret = 0;
-            for (i=0; i<8; i++) {
-                ret = ((b&1)==1) ? ret^a : ret;
-                /* xmult */
-                a = (a>0x7f) ? 0x11b^(a<<1) : (a<<1);
-                b >>>= 1;
-            }
-
-            return ret;
-        };
         var r = [];
         for (var i=0; i<256; i++)
-            r[i] = multx(x, i);
+            r[i] = Gxx(x, i);
         return r;
     },
 
@@ -427,7 +421,7 @@ var GibberishAES = (function(){
     181, 102, 72, 3, 246, 14, 97, 53, 87, 185, 134, 193, 29, 158, 225,
     248, 152, 17, 105, 217, 142, 148, 155, 30, 135, 233, 206, 85, 40, 223,
     140, 161, 137, 13, 191, 230, 66, 104, 65, 153, 45, 15, 176, 84, 187,
-    22], //*/ SBox = str2hex('637c777bf26b6fc53001672bfed7ab76ca82c97dfa5947f0add4a2af9ca472c0b7fd9326363ff7cc34a5e5f171d8311504c723c31896059a071280e2eb27b27509832c1a1b6e5aa0523bd6b329e32f8453d100ed20fcb15b6acbbe394a4c58cfd0efaafb434d338545f9027f503c9fa851a3408f929d38f5bcb6da2110fff3d2cd0c13ec5f974417c4a77e3d645d197360814fdc222a908846eeb814de5e0bdbe0323a0a4906245cc2d3ac629195e479e7c8376d8dd54ea96c56f4ea657aae08ba78252e1ca6b4c6e8dd741f4bbd8b8a703eb5664803f60e613557b986c11d9ee1f8981169d98e949b1e87e9ce5528df8ca1890dbfe6426841992d0fb054bb16'),
+    22], //*/ SBox = strhex('637c777bf26b6fc53001672bfed7ab76ca82c97dfa5947f0add4a2af9ca472c0b7fd9326363ff7cc34a5e5f171d8311504c723c31896059a071280e2eb27b27509832c1a1b6e5aa0523bd6b329e32f8453d100ed20fcb15b6acbbe394a4c58cfd0efaafb434d338545f9027f503c9fa851a3408f929d38f5bcb6da2110fff3d2cd0c13ec5f974417c4a77e3d645d197360814fdc222a908846eeb814de5e0bdbe0323a0a4906245cc2d3ac629195e479e7c8376d8dd54ea96c56f4ea657aae08ba78252e1ca6b4c6e8dd741f4bbd8b8a703eb5664803f60e613557b986c11d9ee1f8981169d98e949b1e87e9ce5528df8ca1890dbfe6426841992d0fb054bb16',2),
 
     // Precomputed lookup table for the inverse SBox
 /*    SBoxInv = [
@@ -454,7 +448,7 @@ var GibberishAES = (function(){
 /*
     Rcon = [1, 2, 4, 8, 16, 32, 64, 128, 27, 54, 108, 216, 171, 77, 154, 47, 94,
     188, 99, 198, 151, 53, 106, 212, 179, 125, 250, 239, 197, 145],
-//*/ Rcon = str2hex('01020408102040801b366cd8ab4d9a2f5ebc63c697356ad4b37dfaefc591'),
+//*/ Rcon = strhex('01020408102040801b366cd8ab4d9a2f5ebc63c697356ad4b37dfaefc591',2),
 
 /*
     G2X = [
@@ -637,42 +631,6 @@ var GibberishAES = (function(){
         string = rawDecrypt(cryptArr, key, iv, binary);
         return string;
     },
-
-    encString = function(plaintext, key, iv) {
-        plaintext = s2a(plaintext);
-
-        key = s2a(key);
-        for (var i=key.length; i<32; i++)
-            key[i] = 0;
-
-        if (iv == null) {
-            iv = genIV();
-        } else {
-            iv = s2a(iv);
-            for (var i=iv.length; i<16; i++)
-                iv[i] = 0;
-        }
-
-        var ct = rawEncrypt(plaintext, key, iv);
-        var ret = [iv];
-        for (var i=0; i<ct.length; i++)
-            ret[ret.length] = ct[i];
-        return Base64.encode(ret);
-    }
-
-    decString = function(ciphertext, key) {
-        var tmp = Base64.decode(ciphertext);
-        var iv = tmp.slice(0, 16);
-        var ct = tmp.slice(16, tmp.length);
-
-        key = s2a(key);
-        for (var i=key.length; i<32; i++)
-            key[i] = 0;
-
-        var pt = rawDecrypt(ct, key, iv, false);
-        return pt;
-    }
-
     
     MD5 = function(numArr) {
 
@@ -810,7 +768,7 @@ var GibberishAES = (function(){
         b,
         c,
         d,
-        rnd = str8hex('67452301EFCDAB8998BADCFE10325476D76AA478E8C7B756242070DBC1BDCEEEF57C0FAF4787C62AA8304613FD469501698098D88B44F7AFFFFF5BB1895CD7BE6B901122FD987193A679438E49B40821F61E2562C040B340265E5A51E9B6C7AAD62F105D02441453D8A1E681E7D3FBC821E1CDE6C33707D6F4D50D87455A14EDA9E3E905FCEFA3F8676F02D98D2A4C8AFFFA39428771F6816D9D6122FDE5380CA4BEEA444BDECFA9F6BB4B60BEBFBC70289B7EC6EAA127FAD4EF308504881D05D9D4D039E6DB99E51FA27CF8C4AC5665F4292244432AFF97AB9423A7FC93A039655B59C38F0CCC92FFEFF47D85845DD16FA87E4FFE2CE6E0A30143144E0811A1F7537E82BD3AF2352AD7D2BBEB86D391');
+        rnd = strhex('67452301efcdab8998badcfe10325476d76aa478e8c7b756242070dbc1bdceeef57c0faf4787c62aa8304613fd469501698098d88b44f7afffff5bb1895cd7be6b901122fd987193a679438e49b40821f61e2562c040b340265e5a51e9b6c7aad62f105d02441453d8a1e681e7d3fbc821e1cde6c33707d6f4d50d87455a14eda9e3e905fcefa3f8676f02d98d2a4c8afffa39428771f6816d9d6122fde5380ca4beea444bdecfa9f6bb4b60bebfbc70289b7ec6eaa127fad4ef308504881d05d9d4d039e6db99e51fa27cf8c4ac5665f4292244432aff97ab9423a7fc93a039655b59c38f0ccc92ffeff47d85845dd16fa87e4ffe2ce6e0a30143144e0811a1f7537e82bd3af2352ad7d2bbeb86d391',8);
 
         x = convertToWordArray(numArr);
 
@@ -896,7 +854,41 @@ var GibberishAES = (function(){
 
         return wordToHex(a).concat(wordToHex(b), wordToHex(c), wordToHex(d));
     },
-    
+
+    encString = function(plaintext, key, iv) {
+        plaintext = s2a(plaintext);
+
+        key = s2a(key);
+        for (var i=key.length; i<32; i++)
+            key[i] = 0;
+
+        if (iv == null) {
+            iv = genIV();
+        } else {
+            iv = s2a(iv);
+            for (var i=iv.length; i<16; i++)
+                iv[i] = 0;
+        }
+
+        var ct = rawEncrypt(plaintext, key, iv);
+        var ret = [iv];
+        for (var i=0; i<ct.length; i++)
+            ret[ret.length] = ct[i];
+        return Base64.encode(ret);
+    },
+
+    decString = function(ciphertext, key) {
+        var tmp = Base64.decode(ciphertext);
+        var iv = tmp.slice(0, 16);
+        var ct = tmp.slice(16, tmp.length);
+
+        key = s2a(key);
+        for (var i=key.length; i<32; i++)
+            key[i] = 0;
+
+        var pt = rawDecrypt(ct, key, iv, false);
+        return pt;
+    },
 
     Base64 = (function(){
         // Takes a Nx16x1 byte array and converts it to Base64
