@@ -65,7 +65,7 @@
             cpad = 16 - byteArr.length;
             array = [cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad, cpad];
         }
-        for (var i = 0; i < byteArr.length; i++)
+        for (i = 0; i < byteArr.length; i++)
         {
             array[i] = byteArr[i];
         }
@@ -80,14 +80,14 @@
             if (padding > 16) {
                 throw ('Decryption error: Maybe bad key');
             }
-            if (padding == 16) {
+            if (padding === 16) {
                 return '';
             }
-            for (var i = 0; i < 16 - padding; i++) {
+            for (i = 0; i < 16 - padding; i++) {
                 string += String.fromCharCode(block[i]);
             }
         } else {
-            for (var i = 0; i < 16; i++) {
+            for (i = 0; i < 16; i++) {
                 string += String.fromCharCode(block[i]);
             }
         }
@@ -97,7 +97,7 @@
     a2h = function(numArr)
     {
         var string = '', i;
-        for (var i = 0; i < numArr.length; i++) {
+        for (i = 0; i < numArr.length; i++) {
             string += (numArr[i] < 16 ? '0': '') + numArr[i].toString(16);
         }
         return string;
@@ -120,7 +120,7 @@
             string = enc_utf8(string);
         }
 
-        for (var i = 0; i < string.length; i++)
+        for (i = 0; i < string.length; i++)
         {
             array[i] = string.charCodeAt(i);
         }
@@ -151,7 +151,7 @@
 
     randArr = function(num) {
         var result = [], i;
-        for (var i = 0; i < num; i++) {
+        for (i = 0; i < num; i++) {
             result = result.concat(Math.floor(Math.random() * 256));
         }
         return result;
@@ -171,10 +171,10 @@
         result = [],
         data00 = passwordArr.concat(saltArr),
         i;
-        md5_hash[0] = GibberishAES.Hash.MD5(data00);
+        md5_hash[0] = MD5(data00);
         result = md5_hash[0];
-        for (var i = 1; i < rounds; i++) {
-            md5_hash[i] = GibberishAES.Hash.MD5(md5_hash[i - 1].concat(data00));
+        for (i = 1; i < rounds; i++) {
+            md5_hash[i] = MD5(md5_hash[i - 1].concat(data00));
             result = result.concat(md5_hash[i]);
         }
         key = result.slice(0, 4 * Nk);
@@ -192,7 +192,7 @@
         blocks = [],
         i,
         cipherBlocks = [];
-        for (var i = 0; i < numBlocks; i++) {
+        for (i = 0; i < numBlocks; i++) {
             blocks[i] = padBlock(plaintext.slice(i * 16, i * 16 + 16));
         }
         if (plaintext.length % 16 === 0) {
@@ -200,7 +200,7 @@
             // CBC OpenSSL padding scheme
             numBlocks++;
         }
-        for (var i = 0; i < blocks.length; i++) {
+        for (i = 0; i < blocks.length; i++) {
             blocks[i] = (i === 0) ? xorBlocks(blocks[i], iv) : xorBlocks(blocks[i], cipherBlocks[i - 1]);
             cipherBlocks[i] = encryptBlock(blocks[i], key);
         }
@@ -215,14 +215,14 @@
         i,
         plainBlocks = [],
         string = '';
-        for (var i = 0; i < numBlocks; i++) {
+        for (i = 0; i < numBlocks; i++) {
             cipherBlocks.push(cryptArr.slice(i * 16, (i + 1) * 16));
         }
-        for (var i = cipherBlocks.length - 1; i >= 0; i--) {
+        for (i = cipherBlocks.length - 1; i >= 0; i--) {
             plainBlocks[i] = decryptBlock(cipherBlocks[i], key);
             plainBlocks[i] = (i === 0) ? xorBlocks(plainBlocks[i], iv) : xorBlocks(plainBlocks[i], cipherBlocks[i - 1]);
         }
-        for (var i = 0; i < numBlocks - 1; i++) {
+        for (i = 0; i < numBlocks - 1; i++) {
             string += block2s(plainBlocks[i]);
         }
         string += block2s(plainBlocks[i], true);
@@ -267,7 +267,7 @@
         var S = Decrypt ? SBoxInv: SBox,
         temp = [],
         i;
-        for (var i = 0; i < 16; i++) {
+        for (i = 0; i < 16; i++) {
             temp[i] = S[state[i]];
         }
         return temp;
@@ -277,7 +277,7 @@
         var temp = [],
         shiftBy = Decrypt ? [0, 13, 10, 7, 4, 1, 14, 11, 8, 5, 2, 15, 12, 9, 6, 3] : [0, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12, 1, 6, 11],
         i;
-        for (var i = 0; i < 16; i++) {
+        for (i = 0; i < 16; i++) {
             temp[i] = state[shiftBy[i]];
         }
         return temp;
@@ -308,7 +308,7 @@
     addRoundKey = function(state, words, round) {
         var temp = [],
         i;
-        for (var i = 0; i < 16; i++) {
+        for (i = 0; i < 16; i++) {
             temp[i] = state[i] ^ words[round][i];
         }
         return temp;
@@ -317,7 +317,7 @@
     xorBlocks = function(block1, block2) {
         var temp = [],
         i;
-        for (var i = 0; i < 16; i++) {
+        for (i = 0; i < 16; i++) {
             temp[i] = block1[i] ^ block2[i];
         }
         return temp;
@@ -333,12 +333,12 @@
         flat = [],
         j;
 
-        for (var i = 0; i < Nk; i++) {
+        for (i = 0; i < Nk; i++) {
             r = [key[4 * i], key[4 * i + 1], key[4 * i + 2], key[4 * i + 3]];
             w[i] = r;
         }
 
-        for (var i = Nk; i < (4 * (Nr + 1)); i++) {
+        for (i = Nk; i < (4 * (Nr + 1)); i++) {
             w[i] = [];
             for (t = 0; t < 4; t++) {
                 temp[t] = w[i - 1][t];
@@ -346,14 +346,14 @@
             if (i % Nk === 0) {
                 temp = subWord(rotWord(temp));
                 temp[0] ^= Rcon[i / Nk - 1];
-            } else if (Nk > 6 && i % Nk == 4) {
+            } else if (Nk > 6 && i % Nk === 4) {
                 temp = subWord(temp);
             }
             for (t = 0; t < 4; t++) {
                 w[i][t] = w[i - Nk][t] ^ temp[t];
             }
         }
-        for (var i = 0; i < (Nr + 1); i++) {
+        for (i = 0; i < (Nr + 1); i++) {
             flat[i] = [];
             for (j = 0; j < 4; j++) {
                 flat[i].push(w[i * 4 + j][0], w[i * 4 + j][1], w[i * 4 + j][2], w[i * 4 + j][3]);
@@ -374,7 +374,7 @@
         // rotate 4-byte word w left by one byte
         var tmp = w[0],
         i;
-        for (var i = 0; i < 4; i++) {
+        for (i = 0; i < 4; i++) {
             w[i] = w[i + 1];
         }
         w[3] = tmp;
@@ -383,23 +383,25 @@
 
 // jlcooke: 2012-07-12: added strhex + invertArr to compress G2X/G3X/G9X/GBX/GEX/SBox/SBoxInv/Rcon saving over 7KB, and added encString, decString
     strhex = function(str,size) {
-        var ret = [];
-        for (var i=0; i<str.length; i+=size)
+        var i, ret = [];
+        for (i=0; i<str.length; i+=size){
             ret[i/size] = parseInt(str.substr(i,size), 16);
+        }
         return ret;
     },
     invertArr = function(arr) {
-        var ret = [];
-        for (var i=0; i<arr.length; i++)
+        var i, ret = [];
+        for (i=0; i<arr.length; i++){
             ret[arr[i]] = i;
+        }
         return ret;
     },
     Gxx = function(a, b) {
         var i, ret;
 
         ret = 0;
-        for (var i=0; i<8; i++) {
-            ret = ((b&1)==1) ? ret^a : ret;
+        for (i=0; i<8; i++) {
+            ret = ((b&1)===1) ? ret^a : ret;
             /* xmult */
             a = (a>0x7f) ? 0x11b^(a<<1) : (a<<1);
             b >>>= 1;
@@ -408,9 +410,10 @@
         return ret;
     },
     Gx = function(x) {
-        var r = [];
-        for (var i=0; i<256; i++)
+        var i, r = [];
+        for (i=0; i<256; i++){
             r[i] = Gxx(x, i);
+        }
         return r;
     },
 
@@ -788,7 +791,7 @@
         a = rnd[0];
         b = rnd[1];
         c = rnd[2];
-        d = rnd[3]
+        d = rnd[3];
 
         for (k = 0; k < x.length; k += 16) {
             AA = a;
@@ -869,24 +872,29 @@
     },
 
     encString = function(plaintext, key, iv) {
+        var i;
         plaintext = s2a(plaintext);
 
         key = s2a(key);
-        for (var i=key.length; i<32; i++)
+        for (i=key.length; i<32; i++){
             key[i] = 0;
+        }
 
-        if (iv == null) {
-            iv = genIV();
+        if (iv === undefined) {
+            // TODO: This is not defined anywhere... commented out...
+            // iv = genIV();
         } else {
             iv = s2a(iv);
-            for (var i=iv.length; i<16; i++)
+            for (i=iv.length; i<16; i++){
                 iv[i] = 0;
+            }
         }
 
         var ct = rawEncrypt(plaintext, key, iv);
         var ret = [iv];
-        for (var i=0; i<ct.length; i++)
+        for (i=0; i<ct.length; i++){
             ret[ret.length] = ct[i];
+        }
         return Base64.encode(ret);
     },
 
@@ -894,10 +902,12 @@
         var tmp = Base64.decode(ciphertext);
         var iv = tmp.slice(0, 16);
         var ct = tmp.slice(16, tmp.length);
+        var i;
 
         key = s2a(key);
-        for (var i=key.length; i<32; i++)
+        for (i=key.length; i<32; i++){
             key[i] = 0;
+        }
 
         var pt = rawDecrypt(ct, key, iv, false);
         return pt;
@@ -914,18 +924,18 @@
             i,
             broken_b64,
             totalChunks = Math.floor(b.length * 16 / 3);
-            for (var i = 0; i < b.length * 16; i++) {
+            for (i = 0; i < b.length * 16; i++) {
                 flatArr.push(b[Math.floor(i / 16)][i % 16]);
             }
-            for (var i = 0; i < flatArr.length; i = i + 3) {
+            for (i = 0; i < flatArr.length; i = i + 3) {
                 b64 += chars[flatArr[i] >> 2];
                 b64 += chars[((flatArr[i] & 3) << 4) | (flatArr[i + 1] >> 4)];
-                if (! (flatArr[i + 1] === undefined)) {
+                if ( flatArr[i + 1] !== undefined ) {
                     b64 += chars[((flatArr[i + 1] & 15) << 2) | (flatArr[i + 2] >> 6)];
                 } else {
                     b64 += '=';
                 }
-                if (! (flatArr[i + 2] === undefined)) {
+                if ( flatArr[i + 2] !== undefined ) {
                     b64 += chars[flatArr[i + 2] & 63];
                 } else {
                     b64 += '=';
@@ -933,8 +943,8 @@
             }
             // OpenSSL is super particular about line breaks
             broken_b64 = b64.slice(0, 64) + '\n';
-            for (var i = 1; i < (Math.ceil(b64.length / 64)); i++) {
-                broken_b64 += b64.slice(i * 64, i * 64 + 64) + (Math.ceil(b64.length / 64) == i + 1 ? '': '\n');
+            for (i = 1; i < (Math.ceil(b64.length / 64)); i++) {
+                broken_b64 += b64.slice(i * 64, i * 64 + 64) + (Math.ceil(b64.length / 64) === i + 1 ? '': '\n');
             }
             return broken_b64;
         },
@@ -945,7 +955,7 @@
             c = [],
             b = [],
             i;
-            for (var i = 0; i < string.length; i = i + 4) {
+            for (i = 0; i < string.length; i = i + 4) {
                 c[0] = _chars.indexOf(string.charAt(i));
                 c[1] = _chars.indexOf(string.charAt(i + 1));
                 c[2] = _chars.indexOf(string.charAt(i + 2));

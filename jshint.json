@@ -4,7 +4,7 @@
     "eqeqeq" : true,
     "immed" : true,
     "latedef" : true,
-    "newcap" : true,
+    "newcap" : false,
     "noarg" : true,
     "sub" : true,
     "undef" : true,
@@ -13,6 +13,9 @@
     "browser" : true,
     "globals" : {
         "module" : true,
-        "exports" : true
+        "exports" : true,
+        "define": true,
+        "escape": true,
+        "unescape": true
     }
 }
