@@ -13,7 +13,6 @@ module.exports = function(grunt) {
             ' * <%= pkg.description %>',
             ' *',
             ' * Author: <%= pkg.author %>',
-            ' * Email: mark@mpercival.com',
             ' * Copyright: Mark Percival - http://mpercival.com 2008',
             ' *',
             ' * With thanks to:',
@@ -30,11 +29,12 @@ module.exports = function(grunt) {
         ].join('\n'),
 
         pkg : pkg,
+        uglifyFiles: {},
         src : 'src/gibberish-aes.js'
     };
 
     // setup dynamic filenames
-    config.versioned = [config.pkg.name, config.pkg.version].join('-');
+    config.versioned = [config.pkg.name, config.pkg.version].join('-').toLowerCase();
     config.dist = ['dist/', '.js'].join(config.versioned);
     config.uglifyFiles[['dist/', '.min.js'].join(config.versioned)] = config.dist;
 
@@ -46,10 +46,10 @@ module.exports = function(grunt) {
         },
         copy: {
             dist: {
-                files: {
+                files: [{
                     src: config.src,
                     dest: config.dist
-                }
+                }]
             }
         },
         uglify : {
