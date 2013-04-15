@@ -25,7 +25,7 @@ module.exports = function(grunt) {
             ' *',
             ' * Usage: GibberishAES.enc("secret", "password")',
             ' * Outputs: AES Encrypted text encoded in Base64',
-            ' */'
+            ' */\n'
         ].join('\n'),
 
         pkg : pkg,
@@ -53,7 +53,10 @@ module.exports = function(grunt) {
             }
         },
         uglify : {
-            options : { mangle : true },
+            options : { 
+                mangle : true,
+                banner: config.banner
+            },
             dist : {
                 files : config.uglifyFiles
             }
