@@ -1,0 +1,21 @@
+{
+    "curly" : true,
+    "laxcomma" : true,
+    "eqeqeq" : true,
+    "immed" : true,
+    "latedef" : true,
+    "newcap" : false,
+    "noarg" : true,
+    "sub" : true,
+    "undef" : true,
+    "boss" : true,
+    "eqnull" : true,
+    "browser" : true,
+    "globals" : {
+        "module" : true,
+        "exports" : true,
+        "define": true,
+        "escape": true,
+        "unescape": true
+    }
+}
