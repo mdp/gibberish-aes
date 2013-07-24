@@ -374,7 +374,7 @@
         // rotate 4-byte word w left by one byte
         var tmp = w[0],
         i;
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < 3; i++) {
             w[i] = w[i + 1];
         }
         w[3] = tmp;
