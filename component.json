@@ -10,6 +10,7 @@
     "grunt-contrib-copy": "0.x.x",
     "grunt-contrib-jshint": "0.x.x"
   },
+  "main": "src/gibberish-aes.js",
   "scripts": [
     "src/gibberish-aes.js"
   ],
