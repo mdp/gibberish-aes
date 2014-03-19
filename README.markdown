@@ -34,7 +34,7 @@ Thanks to :
 
 #### OpenSSL Interop
 
-  In Jascascript
+  In Javascript
   
         GibberishAES.enc("Made with Gibberish\n", "password");
         // Outputs: "U2FsdGVkX1+21O5RB08bavFTq7Yq/gChmXrO3f00tvJaT55A5pPvqw0zFVnHSW1o"
