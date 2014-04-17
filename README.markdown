@@ -1,3 +1,12 @@
+## Deprecation Notice
+
+TL;DR; This library is a bit old, and uses an older cipher mode, CBC. A better alternatice is the Stanford Javascript
+Crypto Libray at bitwiseshift/sjcl 
+
+This library sought to maintain compatibility with OpenSSL on the command line. Unfortunately the CBC encryption on cli OpenSSL lacks authentication.
+
+[Stanford's Javascript Crypto Library](https://github.com/bitwiseshiftleft/sjcl) is being actively maintained and defaults to an authenticated version of OBC AES encryption.
+
 # Gibberish AES
 ## A Javascript library for OpenSSL compatible AES encryption
 
