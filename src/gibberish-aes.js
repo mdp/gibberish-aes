@@ -23,7 +23,7 @@
     if (typeof exports === 'object') {
         // Node. 
         module.exports = factory();
-    } else if (typeof define === 'function' && define.amd) {
+    } else if (typeof define === 'function' && define["amd"]) {
         // AMD. Register as an anonymous module.
         define(factory);
     } else {
@@ -223,7 +223,7 @@
             plainBlocks[i] = (i === 0) ? xorBlocks(plainBlocks[i], iv) : xorBlocks(plainBlocks[i], cipherBlocks[i - 1]);
         }
         for (i = 0; i < numBlocks - 1; i++) {
-            string += block2s(plainBlocks[i]);
+            string += block2s(plainBlocks[i], false);
         }
         string += block2s(plainBlocks[i], true);
         return binary ? string : dec_utf8(string); 
@@ -873,9 +873,9 @@
 
     encString = function(plaintext, key, iv) {
         var i;
-        plaintext = s2a(plaintext);
+        plaintext = s2a(plaintext, false);
 
-        key = s2a(key);
+        key = s2a(key, false);
         for (i=key.length; i<32; i++){
             key[i] = 0;
         }
@@ -884,7 +884,7 @@
             // TODO: This is not defined anywhere... commented out...
             // iv = genIV();
         } else {
-            iv = s2a(iv);
+            iv = s2a(iv, false);
             for (i=iv.length; i<16; i++){
                 iv[i] = 0;
             }
@@ -904,7 +904,7 @@
         var ct = tmp.slice(16, tmp.length);
         var i;
 
-        key = s2a(key);
+        key = s2a(key, false);
         for (i=key.length; i<32; i++){
             key[i] = 0;
         }
