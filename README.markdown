@@ -6,7 +6,7 @@
 This library is a quite old, and uses an older and non-authenticated cipher mode, CBC. There are better and more frequently maintained alternatives. Here are a couple that I would recommend:
 
 - [LibSodium](https://github.com/jedisct1/libsodium) is becoming a widely adopted library with a variety of languages supported including Ruby and JS. Example of a similar API in LibSodium.js - [mdp/gibberish-libsodium](https://github.com/mdp/gibberish-libsodium)
-- [Stanford's Javascript Crypto Library](https://github.com/bitwiseshiftleft/sjcl) features OCB mode AES encryption along with authentication. Sopported on most modern browsers and in node.
+- [Stanford's Javascript Crypto Library](https://github.com/bitwiseshiftleft/sjcl) features OCB mode AES encryption along with authentication. Supported on most modern browsers and in node.
 
 ----
 
