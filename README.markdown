@@ -40,14 +40,14 @@ Thanks to :
 
 #### OpenSSL Interop
 
-  In Javascript
-  
-        GibberishAES.enc("Made with Gibberish\n", "password");
-        // Outputs: "U2FsdGVkX1+21O5RB08bavFTq7Yq/gChmXrO3f00tvJaT55A5pPvqw0zFVnHSW1o"
-        
-  On the command line
-  
-        echo "U2FsdGVkX1+21O5RB08bavFTq7Yq/gChmXrO3f00tvJaT55A5pPvqw0zFVnHSW1o" | openssl enc -d -aes-256-cbc -a -k password
+In Javascript
+
+    GibberishAES.enc("Made with Gibberish\n", "password");
+    // Outputs: "U2FsdGVkX1+21O5RB08bavFTq7Yq/gChmXrO3f00tvJaT55A5pPvqw0zFVnHSW1o"
+
+On the command line
+
+    echo "U2FsdGVkX1+21O5RB08bavFTq7Yq/gChmXrO3f00tvJaT55A5pPvqw0zFVnHSW1o" | openssl enc -d -aes-256-cbc -a -k password -md md5
 
 
 ### Requirements
@@ -68,4 +68,3 @@ basic GibberishAES does not.
 ### Design Factors
 
 It only supports CBC AES encryption mode, and it's built to be compatible with OpenSSL.
-
