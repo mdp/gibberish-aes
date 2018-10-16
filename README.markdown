@@ -1,7 +1,7 @@
 # Gibberish AES
 ## A Javascript library for OpenSSL compatible AES encryption
 
-##Deprecation Notice
+## Deprecation Notice
 
 This library is a quite old, and uses an older and non-authenticated cipher mode, CBC. There are better and more frequently maintained alternatives. Here are a couple that I would recommend:
 
