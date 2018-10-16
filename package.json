@@ -9,7 +9,7 @@
       "email": "mark@mpercival.com"
     }
   ],
-  "main": null,
+  "main": "dist/gibberish-aes-1.0.0.min.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/mdp/gibberish-aes.git"
